@@ -1,0 +1,35 @@
+fn test_basic_blocks {
+
+  // Conditional branch:
+
+  if num > 7 {
+    fmt.println("Bigger than expectation.");
+  } else if num < 7 {
+    fmt.println("Smaller than expectation.");
+  } else {
+    fmt.println("Bingo!");
+  }
+
+
+  // Three kinds of loop:
+  // 1. Infinite loop
+
+  loop {
+    fmt.println("This will never be ended.");
+  }
+
+  // 2. while loop
+  var i = 0;
+  while i < 3 {
+    fmt.printf("loop {}", i);
+  }
+
+  // 3. for loop
+  for n in 0..10 {
+    fmt.printf("number {}", n);
+  }
+
+  for item in ["Apple", "Banana", "Watermelon"] {
+    fmt.printf("I like {}", item);
+  }
+}

@@ -1,0 +1,10 @@
+pub fn camel_to_snake(str: String) {
+  str.replaceAll(
+    "[A-Z]",
+    $: letter -> { "_" + letter.to_lower_case() }
+  )
+}
+
+pub fn snake_to_camel(str: String) {
+  str.split("_").map($: (f, i) -> if i == 0 { f } else { f.capitalized() })
+}

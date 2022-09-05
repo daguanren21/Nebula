@@ -1,0 +1,13 @@
+// single endpoint
+use std::fmt;
+
+// tree
+use {
+  std::unit_test,
+  std::io as stdio,
+  std::strings {
+    snake_to_camel,
+    camel_to_snake,
+  },
+  crate::fibonacci.fib,
+}
