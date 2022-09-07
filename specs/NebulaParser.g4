@@ -29,7 +29,8 @@ use_endpoint
   | use_path use_tree
   ;
 use_path
-  : (IDENTIFIER | 'crate') ('::' IDENTIFIER)*
+  : IDENTIFIER ('::' IDENTIFIER)*
+  | 'crate' ('::' IDENTIFIER)+
   ;
 use_tree
   : '{' (use_endpoint ',')+ '}'
@@ -75,7 +76,8 @@ expression
   | expression_with_block
   ;
 simple_expression
-  : literal_expression
+  : simple_literal
+  | array_literal
   | path_expression
   | simple_expression '.' path_expression_segement '(' call_params? ')'         // ModuleCallExpression
   | simple_expression '.' IDENTIFIER                                            // FieldExpression
@@ -104,7 +106,7 @@ expression_stmt
   : simple_expression ';'
   | expression_with_block
   ;
-literal_expression
+simple_literal
   : DECIMAL_LIT
   | BINARY_LIT
   | OCTAL_LIT
@@ -115,13 +117,15 @@ literal_expression
   | STRING_LIT
   | 'true'
   | 'false'
-  | '[' (simple_expression (',' simple_expression)*)? ']' // Arrayliteral
+  ;
+array_literal
+  : '[' (simple_expression (',' simple_expression)*)? ']' // Array literal
   ;
 expression_with_block
   : block_expression
   | if_expression
   | loop_expression
-  // Todo: Match expression
+  | match_expression
   ;
 block_expression
   : '{' statement* '}'
@@ -157,6 +161,26 @@ path_identifier_segment
   | 'super'
   | 'self'
   | 'crate'
+  ;
+match_expression
+  : 'match' expression '{'
+     match_pattern+
+  '}'
+  ;
+match_pattern
+  : match_condition '=>' (simple_expression ',' | block_expression)
+  ;
+match_condition
+  : simple_literal ('|' simple_expression)*   // simple literal as pattern
+  | DECIMAL_LIT ('..' | '...') DECIMAL_LIT    // range as pattern
+  | enum_pattern                              // Enum pattern
+  | '_'                                       // fallback pattern
+  ;
+enum_pattern
+  : IDENTIFIER '::' IDENTIFIER (
+    ('(' IDENTIFIER (',' IDENTIFIER)* ')')
+    | ('{' IDENTIFIER (',' IDENTIFIER)* '}')
+  )?
   ;
 
 // ------------- Expression fragments

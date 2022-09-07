@@ -1,5 +1,5 @@
-enum ExceptionResponse {
+pub enum ExceptionResponse {
   ResourceNotFound { resource: String, debugCode: i32 },
   InvalidRequestParams,
-  FailedToMap(String, i32),
+  NetworkIssue(i32, String),
 }

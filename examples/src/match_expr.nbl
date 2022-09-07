@@ -1,0 +1,38 @@
+use crate::enums.ExceptionResponse;
+use std::math;
+
+fn test_match_expr {
+
+// Simple literals in match expression:
+// This is pseudo code, just for parsing test
+   match some_thing {
+      10.01 => println("国庆节的天安门"),
+      0x65e5 => println("日のUnicode"),
+      'ç' => println("cedilla"),
+      "🐂" => println("Michael Jordan"),
+      _ => println("Unknown city"),
+   }
+
+// Range in match expression:
+   const randomNum = math::round(math::random() * 9)
+   match randomNum {
+     1..3 => println("Small"),
+     4 => println("Lucky middle"),
+     5...6 => println("Bigger"),
+     7 => println("777777 EDG"),
+     8 | 9 => println("Bigger than bigger..."),
+     _ => println("I guess randomNum is 3"),
+   }
+
+// Patterns in match expression
+   const fakeHttpErrResponse = ExceptionResponse::InvalidRequestParams
+   const result = match fakeHttpErrResponse {
+      Exception::InvalidRequestParams => 1 + 3 / 2,
+      Exception::ResourceNotFound { resource, debugCode } => {
+        printf("Resource {} not found! ({})", resource, debugCode)
+      }
+      Exception::NetworkIssue(timeCost, issueMsg) => printf(
+        "Time cost: {}ms, issue: {}", timeCost, issueMsg
+      ),
+   }
+}
