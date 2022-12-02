@@ -1,4 +1,4 @@
-use crate::cli::lexer::decls::{Lexer, LexerError, NumberRadix, Token, TokenPos, TokenType};
+use crate::core::lexer::decls::{Lexer, LexerError, NumberRadix, Token, TokenPos, TokenType};
 use crate::hashmap;
 use std::cell::RefCell;
 use std::collections::HashMap;

@@ -1,4 +1,4 @@
-use crate::cli::lexer::decls::{Lexer, LexerError, TokenType};
+use crate::core::lexer::decls::{Lexer, LexerError, TokenType};
 
 #[test]
 fn test_peek_operators_and_punctuation_tokens() {

@@ -1,4 +1,4 @@
-use crate::cli::lexer::decls::{Lexer, TokenType};
+use crate::core::lexer::decls::{Lexer, TokenType};
 
 #[test]
 fn test_peek_numeric_tokens() {
