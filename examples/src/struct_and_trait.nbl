@@ -1,9 +1,10 @@
 struct People {
   pub name;
   pub age;
-  pub weight;
-  pub height;
   pub desc?;
+
+  weight;
+  height;
 }
 
 fn test_use_struct_init {
@@ -17,7 +18,7 @@ fn test_use_struct_init {
 
 trait Walkable {
   stand();
-  walk(distance);
+  async walk(distance);
   startRacing(self);
   gooseStep(self, type);
 }
@@ -33,7 +34,7 @@ impl People {
 
 impl Walkable for People {
   stand() { println("I'm standing"); }
-  walk(distance) { println("I'm walking"); }
+  async walk(distance) { println("I'm walking"); }
   startRacing(self) { println("I'm racing"); }
   gooseStep(self, type) { println("I'm goose stepping"); }
 }

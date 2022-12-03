@@ -65,7 +65,7 @@ var_decl_unit
 
 // ------------ Function statement
 function_stmt
-  : 'pub'? 'fn' IDENTIFIER function_def_params? func_body
+  : 'pub'? 'async'? 'fn' IDENTIFIER function_def_params? func_body
   ;
 function_def_params
   : '(' function_params ')'
@@ -217,7 +217,7 @@ method_params
   | '(' 'self' (',' IDENTIFIER)* ')'
   ;
 trait_def_field
-  : IDENTIFIER method_params? ';'
+  : 'async'? IDENTIFIER method_params? ';'
   ;
 
 // -------------- Impl Definition
@@ -225,7 +225,7 @@ impl_def_stmt
   : 'impl' IDENTIFIER ('for' IDENTIFIER)? '{' impl_def_field+ '}'
   ;
 impl_def_field
-  : IDENTIFIER method_params? '{' statement* '}'
+  : 'async'? IDENTIFIER method_params? '{' statement* '}'
   ;
 
 // -------------------- Lexer Definition
