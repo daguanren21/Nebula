@@ -21,3 +21,19 @@ trait Walkable {
   startRacing(self);
   gooseStep(self, type);
 }
+
+impl People {
+  desc() {
+    println("Human being");
+  }
+  introduce(self) {
+    println("Hello, my name is " + self.name);
+  }
+}
+
+impl Walkable for People {
+  stand() { println("I'm standing"); }
+  walk(distance) { println("I'm walking"); }
+  startRacing(self) { println("I'm racing"); }
+  gooseStep(self, type) { println("I'm goose stepping"); }
+}

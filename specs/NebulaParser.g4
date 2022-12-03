@@ -9,6 +9,7 @@ global_statement
   | function_stmt
   | struct_def_stmt
   | trait_def_stmt
+  | impl_def_stmt
   ;
 
 statement
@@ -70,14 +71,13 @@ function_def_params
   : '(' function_params ')'
   ;
 function_params
-  :   (IDENTIFIER) | ((IDENTIFIER) ',' (IDENTIFIER ','?)*)* ('...' IDENTIFIER)?
-  //  ^ Single params        ^ Multiple params                ^ Rest params
+  : IDENTIFIER (',' IDENTIFIER)* (',' '...' IDENTIFIER)?
   ;
 func_body
   : '{' statement* '}'
   ;
 return_stmt
-  : 'return' simple_expression ';'
+  : 'return' expression ';'
   ;
 
 // ------------ Expression
@@ -86,12 +86,13 @@ expression
   | struct_init_expression
   ;
 normal_expression // without struct init expression
-  : simple_expression
+  : simple_literal
+  | array_literal
+  | path_expression
   | expression_with_block
-  | '(' normal_expression ')'
+  | 'await' normal_expression                          // AwaitExpression
   | normal_expression '?.' IDENTIFIER?                 // OptionalChainExpression
   | normal_expression ('.' IDENTIFIER)                 // AccessMemberFieldExpression
-  | 'await' normal_expression                          // AwaitExpression
   | normal_expression '(' call_args? ')'               // CallExpression
   | normal_expression '.' tuple_index                  // TupleIndexingExpression
   | normal_expression '[' normal_expression ']'        // IndexExpression
@@ -110,13 +111,8 @@ normal_expression // without struct init expression
     '^=' | '<<=' | '>>=') normal_expression             // CompoundAssignmentExpression
   | normal_expression ('..' | '...') normal_expression  // RangeExpression
   ;
-simple_expression
-  : simple_literal
-  | array_literal
-  | path_expression
-  ;
 expression_stmt
-  : simple_expression ';'
+  : expression ';'
   | expression_with_block
   ;
 simple_literal
@@ -169,6 +165,7 @@ path_expression
 path_expression_start
   : IDENTIFIER
   | 'crate'
+  | 'self'
   ;
 match_expression
   : 'match' normal_expression '{'
@@ -216,11 +213,19 @@ trait_def_stmt
   : 'trait' IDENTIFIER '{' trait_def_field+ '}'
   ;
 method_params
-  : '(' function_params ')'
+  : '(' function_params? ')'
   | '(' 'self' (',' IDENTIFIER)* ')'
   ;
 trait_def_field
   : IDENTIFIER method_params? ';'
+  ;
+
+// -------------- Impl Definition
+impl_def_stmt
+  : 'impl' IDENTIFIER ('for' IDENTIFIER)? '{' impl_def_field+ '}'
+  ;
+impl_def_field
+  : IDENTIFIER method_params? '{' statement* '}'
   ;
 
 // -------------------- Lexer Definition

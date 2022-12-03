@@ -6,4 +6,7 @@ fn testOneWithRest(y, ...args) { }
 fn testTwoWithRest(m, n, ...others) { }
 
 // Incorrect examples, expect to report error:
-// fn restBeforeOtherParam(...args, i) { }
+// 1. params after rest params are forbidden
+//   fn restBeforeOtherParam(...args, i) { }
+// 2. empty parentheses are forbidden
+//   fn emptyParentheses() { }
