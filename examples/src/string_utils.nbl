@@ -1,4 +1,4 @@
-pub fn camel_to_snake(str: String) {
+pub fn camel_to_snake(str) {
   str.replaceAll(
     "[A-Z]",
     $: letter -> { "_" + letter.to_lower_case() }

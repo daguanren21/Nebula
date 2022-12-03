@@ -4,7 +4,7 @@ use crate::core::lexer::decls::{Lexer, LexerError, TokenType};
 fn test_peek_operators_and_punctuation_tokens() {
   let mut lexer = Lexer::new(
     "@/=!;..>>\n\
-        // this is line comment \n\
+        ?. ? // this is line comment \n\
         %/  &&(+.../* block comment */\n\
         ||!=*)+=::  >>=\n\
         %=  &=**,)=  ;==..<<=",
@@ -22,6 +22,8 @@ fn test_peek_operators_and_punctuation_tokens() {
     TokenType::Semi,
     TokenType::DoubleDots,
     TokenType::DoubleRightAngle,
+    TokenType::QuestionDot,
+    TokenType::Question,
     TokenType::Percent,
     TokenType::Slash,
     TokenType::DoubleAmpersand,

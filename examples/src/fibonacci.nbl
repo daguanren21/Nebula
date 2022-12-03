@@ -1,6 +1,6 @@
-pub fn fib(num: i32) {
-  guard n < 2 else {
-    num
+pub fn fib(num) {
+  if num < 2 {
+    return num
   }
 
   var prev = 0, next = 1;

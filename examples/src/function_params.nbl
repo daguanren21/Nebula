@@ -1,0 +1,9 @@
+fn testNoParams { }
+fn testOneParams(x) { }
+fn testTwoParams(a, b) { }
+fn testOnlyRest(...args) { }
+fn testOneWithRest(y, ...args) { }
+fn testTwoWithRest(m, n, ...others) { }
+
+// Incorrect examples, expect to report error:
+// fn restBeforeOtherParam(...args, i) { }

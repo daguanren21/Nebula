@@ -7,13 +7,15 @@ global_statement
   : use_stmt
   | enum_stmt
   | function_stmt
+  | struct_def_stmt
   ;
 
 statement
   : expression_stmt
+  | var_decl_stmt
   | function_stmt
   | return_stmt
-  | 'break' ';'
+  | 'break' expression? ';'
   | 'continue' ';'
   ;
 
@@ -38,9 +40,7 @@ use_tree
 
 // ------------ Enum statement
 enum_stmt
-  : 'enum' IDENTIFIER '{'
-      enum_items*
-    '}'
+  : 'enum' IDENTIFIER '{' enum_items* '}'
   ;
 enum_items
   : enum_item (',' enum_item ','?)*
@@ -49,19 +49,25 @@ enum_item
   : IDENTIFIER enum_item_type_decl?
   ;
 enum_item_type_decl
-  : '(' type_annotation (',' type_annotation ','?)* ')'
-  | '{' enum_item_field (',' enum_item_field ','?)* '}'
+  : '{' IDENTIFIER (',' IDENTIFIER ','?)* '}'
   ;
-enum_item_field
-  : IDENTIFIER ':' type_annotation
+
+// ------------ Variable declaration statement
+var_decl_stmt
+  : ('var' | 'const') var_decl_unit (',' var_decl_unit)* ';'
+  ;
+var_decl_unit
+  : IDENTIFIER '=' expression
+  | '[' IDENTIFIER (',' IDENTIFIER)* ']' '=' expression
   ;
 
 // ------------ Function statement
 function_stmt
-  : 'pub'? 'fn' IDENTIFIER
-     // Todo: Generics parameters
-     // Todo: Function parameters
-    func_body
+  : 'pub'? 'fn' IDENTIFIER function_params? func_body
+  ;
+function_params
+  : '(' ( IDENTIFIER | (IDENTIFIER ',' (IDENTIFIER ','?)*)* ('...' IDENTIFIER)? ) ')'
+  //     ^ Single params        ^ Multiple params             ^ Rest params
   ;
 func_body
   : '{' statement* '}'
@@ -72,35 +78,38 @@ return_stmt
 
 // ------------ Expression
 expression
+  : normal_expression
+  | struct_init_expression
+  ;
+normal_expression // without struct init expression
   : simple_expression
   | expression_with_block
+  | '(' normal_expression ')'
+  | normal_expression '?.' IDENTIFIER?                 // OptionalChainExpression
+  | normal_expression ('.' IDENTIFIER)                 // AccessMemberFieldExpression
+  | 'await' normal_expression                          // AwaitExpression
+  | normal_expression '(' call_args? ')'               // CallExpression
+  | normal_expression '.' tuple_index                  // TupleIndexingExpression
+  | normal_expression '[' normal_expression ']'        // IndexExpression
+  | ('-' | '!') normal_expression                      // NegationExpression
+  | normal_expression ('*' | '/' | '%') normal_expression  // ArithmeticOrLogicalExpression
+  | normal_expression ('+' | '-') normal_expression        // ArithmeticOrLogicalExpression
+  | normal_expression ('<<' | '>>') normal_expression      // ArithmeticOrLogicalExpression
+  | normal_expression '&' normal_expression                // ArithmeticOrLogicalExpression
+  | normal_expression '^' normal_expression                // ArithmeticOrLogicalExpression
+  | normal_expression '|' normal_expression                // ArithmeticOrLogicalExpression
+  | normal_expression 
+    ('==' | '!=' | '>' | '<' | '>=' | '<=') normal_expression   // ComparisonExpression
+  | normal_expression '&&' normal_expression  // LazyBooleanExpression
+  | normal_expression '||' normal_expression  // LazyBooleanExpression
+  | normal_expression ('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' |
+    '^=' | '<<=' | '>>=') normal_expression             // CompoundAssignmentExpression
+  | normal_expression ('..' | '...') normal_expression  // RangeExpression
   ;
 simple_expression
   : simple_literal
   | array_literal
   | path_expression
-  | simple_expression '.' path_expression_segement '(' call_params? ')'         // ModuleCallExpression
-  | simple_expression '.' IDENTIFIER                                            // FieldExpression
-  | simple_expression '.' tuple_index                                           // TupleIndexingExpression
-  | simple_expression '.' 'await'                                               // AwaitExpression
-  | simple_expression '(' call_params? ')'                                      // CallExpression
-  | simple_expression '[' simple_expression ']'                                 // IndexExpression
-  | '&' simple_expression                                                       // ReferenceExpression
-  | '*' simple_expression                                                       // DereferenceExpression
-  | ('-' | '!') simple_expression                                               // NegationExpression
-  | simple_expression 'as' type_parameters                                      // TypeCastExpression
-  | simple_expression ('*' | '/' | '%') simple_expression                       // ArithmeticOrLogicalExpression
-  | simple_expression ('+' | '-') simple_expression                             // ArithmeticOrLogicalExpression
-  | simple_expression ('<<' | '>>') simple_expression                           // ArithmeticOrLogicalExpression
-  | simple_expression '&' simple_expression                                     // ArithmeticOrLogicalExpression
-  | simple_expression '^' simple_expression                                     // ArithmeticOrLogicalExpression
-  | simple_expression '|' simple_expression                                     // ArithmeticOrLogicalExpression
-  | simple_expression ('==' | '!=' | '>' | '<' | '>=' | '<=') simple_expression // ComparisonExpression
-  | simple_expression '&&' simple_expression                                    // LazyBooleanExpression
-  | simple_expression '||' simple_expression                                    // LazyBooleanExpression
-  | simple_expression ('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' |
-    '^=' | '<<=' | '>>=') simple_expression                                     // CompoundAssignmentExpression
-  | simple_expression ('..' | '...') simple_expression                          // RangeExpression
   ;
 expression_stmt
   : simple_expression ';'
@@ -119,19 +128,19 @@ simple_literal
   | 'false'
   ;
 array_literal
-  : '[' (simple_expression (',' simple_expression)*)? ']' // Array literal
+  : '[' (normal_expression (',' normal_expression)*)? ']' // Array literal
   ;
-expression_with_block
-  : block_expression
+ expression_with_block
+  : in_block_expression
   | if_expression
   | loop_expression
   | match_expression
   ;
-block_expression
-  : '{' statement* '}'
+in_block_expression
+  : '{' statement* expression '}'
   ;
 if_expression
-   : 'if' simple_expression block_expression ( 'else' (block_expression | if_expression) )?
+   : 'if' normal_expression in_block_expression ( 'else' (in_block_expression | if_expression) )?
    ;
 loop_expression
   : infinite_loop_expression
@@ -139,71 +148,63 @@ loop_expression
   | for_loop_expression
   ;
 infinite_loop_expression
-  : 'loop' block_expression
+  : 'loop' in_block_expression
   ;
 while_loop_expression
-  : 'while' simple_expression block_expression
+  : 'while' normal_expression in_block_expression
   ;
 for_loop_expression
-  : 'for' for_loop_alias (',' for_loop_alias)? 'in' simple_expression block_expression
+  : 'for' for_loop_alias (',' for_loop_alias)? 'in' normal_expression in_block_expression
   ;
 for_loop_alias
   : IDENTIFIER | '_'
   ;
 path_expression
-  : path_expression_segement ('::' path_expression_segement)*
+  : path_expression_start ('::' IDENTIFIER)*
   ;
-path_expression_segement
-  : path_identifier_segment type_parameters?
-  ;
-path_identifier_segment
+path_expression_start
   : IDENTIFIER
-  | 'super'
-  | 'self'
   | 'crate'
   ;
 match_expression
-  : 'match' expression '{'
+  : 'match' normal_expression '{'
      match_pattern+
   '}'
   ;
 match_pattern
-  : match_condition '=>' (simple_expression ',' | block_expression)
+  : match_condition '=>' (expression ',' | in_block_expression)
   ;
 match_condition
-  : simple_literal ('|' simple_expression)*   // simple literal as pattern
+  : simple_literal ('|' simple_literal)*      // simple literal as pattern
   | DECIMAL_LIT ('..' | '...') DECIMAL_LIT    // range as pattern
   | enum_pattern                              // Enum pattern
   | '_'                                       // fallback pattern
   ;
 enum_pattern
-  : IDENTIFIER '::' IDENTIFIER (
-    ('(' IDENTIFIER (',' IDENTIFIER)* ')')
-    | ('{' IDENTIFIER (',' IDENTIFIER)* '}')
-  )?
+  : IDENTIFIER '::' IDENTIFIER
+  ;
+struct_init_expression
+  : (IDENTIFIER | 'struct') '{' (struct_init_field ',')+ '}'
+  | 'new' IDENTIFIER
+  ;
+struct_init_field
+  : IDENTIFIER '=' expression
   ;
 
 // ------------- Expression fragments
-call_params
-  : simple_expression (',' expression)*
+call_args
+  : expression (',' expression)*
   ;
 tuple_index
   : DECIMAL_LIT
   ;
 
-// ------------ Type annotation
-type_annotation
-  : primitive_types
-  | IDENTIFIER type_parameters?
+// -------------- Struct Defintion
+struct_def_stmt
+  : 'struct' IDENTIFIER '{' struct_def_field+ '}'
   ;
-primitive_types
-  : INTEGER_TYPES
-  | FLOAT_TYPES
-  | BOOL_TYPE
-  | CHAR_TYPE
-  ;
-type_parameters
-  : '<' type_annotation (',' type_annotation)* '>'
+struct_def_field
+  : ('pub'? IDENTIFIER '?'? ';')
   ;
 
 // -------------------- Lexer Definition
@@ -225,8 +226,8 @@ VAR : 'var';
 CONST : 'const';
 FN : 'fn';
 RETURN : 'return';
-GUARD : 'guard';
 STRUCT : 'struct';
+NEW: 'new';
 TRAIT : 'trait';
 ENUM : 'enum';
 IMPL : 'impl';
@@ -238,13 +239,6 @@ TRUE : 'true';
 FALSE : 'false';
 NIL : 'nil';
 CRATE: 'crate';
-
-// primitive types
-fragment INTEGER_BITS: '8' | '16' | '32' | '64' | '128' | 'size';
-INTEGER_TYPES: ('i' INTEGER_BITS) | ('u' INTEGER_BITS) ;
-FLOAT_TYPES: 'f32' | 'f64';
-BOOL_TYPE: 'bool';
-CHAR_TYPE: 'char';
 
 // punctuations
 L_PAREN: '(';
@@ -297,6 +291,8 @@ VERTICAL_EQUAL: '|=';
 CARET_EQUAL: '^=';
 DOUBLE_DOTS: '..';
 THREE_DOTS: '...';
+QUESTION: '?';
+QUESTION_DOT: '?.';
 
 // Lambda label is so specific that we can easily parse
 LAMBDA_LABEL: '$:';

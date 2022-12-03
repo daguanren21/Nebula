@@ -1,5 +1,5 @@
 pub enum ExceptionResponse {
-  ResourceNotFound { resource: String, debugCode: i32 },
+  ResourceNotFound,
   InvalidRequestParams,
-  NetworkIssue(i32, String),
+  NetworkIssue,
 }

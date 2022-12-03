@@ -85,8 +85,8 @@ impl<'a> Lexer<'a> {
         if *second_c == *second_char {
           self.consume_char();
           if let Some(third_c) = self.chars.peek() {
-            if let Some(third_unwraped) = third {
-              let (third_char, third_type, third_str) = third_unwraped;
+            if let Some(third_unwrapped) = third {
+              let (third_char, third_type, third_str) = third_unwrapped;
               if *third_c == *third_char {
                 self.consume_char();
                 return Some(self.create_token(*third_type, third_str.clone()));
@@ -450,8 +450,8 @@ impl<'a> Lexer<'a> {
           "const" => TokenType::Const,
           "fn" => TokenType::Fn,
           "return" => TokenType::Return,
-          "guard" => TokenType::Guard,
           "struct" => TokenType::Struct,
+          "new" => TokenType::New,
           "trait" => TokenType::Trait,
           "enum" => TokenType::Enum,
           "impl" => TokenType::Impl,
@@ -460,7 +460,8 @@ impl<'a> Lexer<'a> {
           "true" => TokenType::True,
           "false" => TokenType::False,
           "nil" => TokenType::Nil,
-          "crate" => TokenType::Crate
+          "crate" => TokenType::Crate,
+          "self" => TokenType::_Self_,
       }),
       errors: Vec::<LexerError>::new(),
     }
@@ -619,6 +620,18 @@ impl<'a> Lexer<'a> {
             hashmap! {
                 '=' => (TokenType::VerticalEqual, String::from("|="), None),
                 '|' => (TokenType::DoubleVertical, String::from("||"), None)
+            },
+          )
+        }
+        '?' => {
+          return self.multiple_chars_lexing(
+            (TokenType::Question, String::from("?")),
+            hashmap! {
+              '.' => (
+                TokenType::QuestionDot,
+                String::from("?."),
+                None,
+              )
             },
           )
         }

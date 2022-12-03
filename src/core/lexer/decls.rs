@@ -27,9 +27,9 @@ pub enum TokenType {
   // * Function declaration:
   Fn,
   Return,
-  Guard,
   // * Composition and abstract:
   Struct,
+  New,
   Trait,
   Enum,
   Impl,
@@ -42,6 +42,7 @@ pub enum TokenType {
   True,
   False,
   Crate,
+  _Self_,
 
   // Number literals:
   DecimalInteger,
@@ -106,6 +107,8 @@ pub enum TokenType {
   CaretEqual,            // ^=
   DoubleDots,            // ..
   ThreeDots,             // ...
+  Question,              // ?
+  QuestionDot,           // ?.
 
   // ----- Identifier symbol:
   Identifier,

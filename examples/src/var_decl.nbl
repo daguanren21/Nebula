@@ -1,0 +1,9 @@
+fn generate_random_four_nums() {
+  // ... Todo: implement returning an array with four random numbers
+}
+
+fn test_var_decl {
+  const bit_num = 0x8F32E;
+  var a = 1, b = 5.3, c = false;
+  var [first, second] = generate_random_four_nums();
+}
