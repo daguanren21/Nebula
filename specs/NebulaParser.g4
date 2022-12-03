@@ -8,6 +8,7 @@ global_statement
   | enum_stmt
   | function_stmt
   | struct_def_stmt
+  | trait_def_stmt
   ;
 
 statement
@@ -63,11 +64,14 @@ var_decl_unit
 
 // ------------ Function statement
 function_stmt
-  : 'pub'? 'fn' IDENTIFIER function_params? func_body
+  : 'pub'? 'fn' IDENTIFIER function_def_params? func_body
+  ;
+function_def_params
+  : '(' function_params ')'
   ;
 function_params
-  : '(' ( IDENTIFIER | (IDENTIFIER ',' (IDENTIFIER ','?)*)* ('...' IDENTIFIER)? ) ')'
-  //     ^ Single params        ^ Multiple params             ^ Rest params
+  :   (IDENTIFIER) | ((IDENTIFIER) ',' (IDENTIFIER ','?)*)* ('...' IDENTIFIER)?
+  //  ^ Single params        ^ Multiple params                ^ Rest params
   ;
 func_body
   : '{' statement* '}'
@@ -205,6 +209,18 @@ struct_def_stmt
   ;
 struct_def_field
   : ('pub'? IDENTIFIER '?'? ';')
+  ;
+
+// -------------- Trait Definition
+trait_def_stmt
+  : 'trait' IDENTIFIER '{' trait_def_field+ '}'
+  ;
+method_params
+  : '(' function_params ')'
+  | '(' 'self' (',' IDENTIFIER)* ')'
+  ;
+trait_def_field
+  : IDENTIFIER method_params? ';'
   ;
 
 // -------------------- Lexer Definition

@@ -14,3 +14,10 @@ fn test_use_struct_init {
     height = 178,
   }
 }
+
+trait Walkable {
+  stand();
+  walk(distance);
+  startRacing(self);
+  gooseStep(self, type);
+}
