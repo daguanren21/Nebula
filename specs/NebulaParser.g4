@@ -91,7 +91,7 @@ normal_expression // without struct init expression
   | path_expression
   | expression_with_block
   | 'await' normal_expression                          // AwaitExpression
-  | normal_expression '?.' IDENTIFIER?                 // OptionalChainExpression
+  | normal_expression '?.' IDENTIFIER                  // OptionalChainExpression
   | normal_expression ('.' IDENTIFIER)                 // AccessMemberFieldExpression
   | normal_expression '(' call_args? ')'               // CallExpression
   | normal_expression '.' tuple_index                  // TupleIndexingExpression

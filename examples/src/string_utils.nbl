@@ -5,6 +5,6 @@ pub fn camel_to_snake(str) {
   )
 }
 
-pub fn snake_to_camel(str: String) {
+pub fn snake_to_camel(str) {
   str.split("_").map($: (f, i) -> if i == 0 { f } else { f.capitalized() })
 }
