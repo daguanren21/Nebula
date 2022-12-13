@@ -89,7 +89,6 @@ normal_expression // without struct init expression
   : simple_literal
   | array_literal
   | path_expression
-  | expression_with_block
   | 'await' normal_expression                          // AwaitExpression
   | normal_expression '?.' IDENTIFIER                  // OptionalChainExpression
   | normal_expression ('.' IDENTIFIER)                 // AccessMemberFieldExpression
@@ -130,7 +129,7 @@ simple_literal
 array_literal
   : '[' (normal_expression (',' normal_expression)*)? ']' // Array literal
   ;
- expression_with_block
+expression_with_block
   : in_block_expression
   | if_expression
   | loop_expression
@@ -154,10 +153,13 @@ while_loop_expression
   : 'while' normal_expression in_block_expression
   ;
 for_loop_expression
-  : 'for' for_loop_alias (',' for_loop_alias)? 'in' normal_expression in_block_expression
+  : 'for' for_loop_alias (',' for_loop_alias)?
+    'in' normal_expression
+    ('{' /* Empty */ '}'| in_block_expression)
   ;
 for_loop_alias
-  : IDENTIFIER | '_'
+  : IDENTIFIER
+  | '_'
   ;
 path_expression
   : path_expression_start ('::' IDENTIFIER)*
