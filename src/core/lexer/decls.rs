@@ -110,6 +110,9 @@ pub enum TokenType {
   Question,              // ?
   QuestionDot,           // ?.
 
+  // ----- Important symbols:
+  DollarColon,           // $:
+
   // ----- Identifier symbol:
   Identifier,
 

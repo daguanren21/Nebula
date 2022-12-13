@@ -461,7 +461,7 @@ impl<'a> Lexer<'a> {
           "false" => TokenType::False,
           "nil" => TokenType::Nil,
           "crate" => TokenType::Crate,
-          "self" => TokenType::_Self_,
+          "self" => TokenType::_Self_
       }),
       errors: Vec::<LexerError>::new(),
     }
@@ -490,6 +490,15 @@ impl<'a> Lexer<'a> {
         return self.lexing_numeric(c);
       } else if c.is_alphabetic() || c == '_' {
         return self.lexing_identifier(c);
+      }
+
+      // special handling for dollar sign to create a lambda prefix
+      if c == '$' && self.match_next_char(':') {
+        self.consume_char(); // eat the colon
+        return Some(self.create_token(
+          TokenType::DollarColon,
+          String::from("$:"))
+        );
       }
 
       // match for operators, maybe two or three characters.

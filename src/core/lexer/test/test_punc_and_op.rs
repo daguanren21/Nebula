@@ -7,7 +7,7 @@ fn test_peek_operators_and_punctuation_tokens() {
         ?. ? // this is line comment \n\
         %/  &&(+.../* block comment */\n\
         ||!=*)+=::  >>=\n\
-        %=  &=**,)=  ;==..<<=",
+        %=  &=**,)=$:  ;==..<<=",
   );
   let mut got_token_types = Vec::<TokenType>::new();
   let mut got_lexer_errors = Vec::<&LexerError>::new();
@@ -43,6 +43,7 @@ fn test_peek_operators_and_punctuation_tokens() {
     TokenType::Comma,
     TokenType::RightParen,
     TokenType::Equal,
+    TokenType::DollarColon,
     TokenType::Semi,
     TokenType::DoubleEqual,
     TokenType::DoubleDots,
