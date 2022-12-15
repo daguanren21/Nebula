@@ -1,7 +1,6 @@
-use crate::core::lexer::decls::{Lexer, TokenType};
-
 #[test]
 fn test_peek_string_tokens() {
+  use crate::core::lexer::decls::{Lexer, TokenType};
   let mut lexer = Lexer::new(
     " 'c' '中' 'な' '\\t' '언' \"hello_world\" \"another string 2022\" \"你好中国\" \"nebula❤️\" \
         \"'dd\\t\\n\" \"something \\\"dead\\\"\" \"愛してる\" \"안녕하세요\" \"Здравствуйте\" \"नमस्ते\" ",

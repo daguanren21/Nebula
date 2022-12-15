@@ -1,7 +1,6 @@
-use crate::core::lexer::decls::{Lexer, LexerError, TokenType};
-
 #[test]
 fn test_peek_operators_and_punctuation_tokens() {
+  use crate::core::lexer::decls::{Lexer, LexerError, TokenType};
   let mut lexer = Lexer::new(
     "@/=!;..>>\n\
         ?. ? // this is line comment \n\

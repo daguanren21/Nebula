@@ -1,7 +1,6 @@
-use crate::core::lexer::decls::{Lexer, TokenType};
-
 #[test]
 fn test_peek_identifiers_and_reserved_words() {
+  use crate::core::lexer::decls::{Lexer, TokenType};
   let mut lexer = Lexer::new(
     "a\n\
      a1_b3\n\

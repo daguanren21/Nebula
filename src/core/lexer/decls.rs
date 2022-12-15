@@ -111,7 +111,7 @@ pub enum TokenType {
   QuestionDot,           // ?.
 
   // ----- Important symbols:
-  DollarColon,           // $:
+  DollarColon, // $:
 
   // ----- Identifier symbol:
   Identifier,

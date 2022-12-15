@@ -15,7 +15,6 @@ global_statement
 statement
   : expression_stmt
   | var_decl_stmt
-  | function_stmt
   | return_stmt
   | 'break' expression? ';'
   | 'continue' ';'
@@ -42,7 +41,7 @@ use_tree
 
 // ------------ Enum statement
 enum_stmt
-  : 'enum' IDENTIFIER '{' enum_items* '}'
+  : 'pub'? 'enum' IDENTIFIER '{' enum_items* '}'
   ;
 enum_items
   : enum_item (',' enum_item ','?)*
@@ -56,11 +55,19 @@ enum_item_type_decl
 
 // ------------ Variable declaration statement
 var_decl_stmt
-  : ('var' | 'const') var_decl_unit (',' var_decl_unit)* ';'
+  : 'var' var_decl_unit (',' var_decl_unit)* ';'
+  | 'const' const_decl_unit (',' const_decl_unit)* ';'
+  ;
+const_decl_unit
+  : IDENTIFIER '=' expression
+  | destruct_decl_unit
   ;
 var_decl_unit
-  : IDENTIFIER '=' expression
-  | '[' IDENTIFIER (',' IDENTIFIER)* ']' '=' expression
+  : IDENTIFIER ('=' expression)?
+  | destruct_decl_unit
+  ;
+destruct_decl_unit
+  : '[' IDENTIFIER (',' IDENTIFIER)* (',' '...' (IDENTIFIER | destruct_decl_unit))? ']' '=' expression
   ;
 
 // ------------ Function statement
@@ -72,9 +79,10 @@ function_def_params
   ;
 function_params
   : IDENTIFIER (',' IDENTIFIER)* (',' '...' IDENTIFIER)?
+  | '...' IDENTIFIER
   ;
 func_body
-  : '{' statement* '}'
+  : '{' statement* expression? '}'
   ;
 return_stmt
   : 'return' expression ';'
@@ -83,35 +91,56 @@ return_stmt
 // ------------ Expression
 expression
   : normal_expression
+  | expression_with_block
   | struct_init_expression
   ;
 normal_expression // without struct init expression
-  : simple_literal
+  : '(' normal_expression ')'
+  | simple_literal
   | array_literal
   | path_expression
-  | 'await' normal_expression                          // AwaitExpression
-  | normal_expression '?.' IDENTIFIER                  // OptionalChainExpression
-  | normal_expression ('.' IDENTIFIER)                 // AccessMemberFieldExpression
-  | normal_expression '(' call_args? ')'               // CallExpression
-  | normal_expression '.' tuple_index                  // TupleIndexingExpression
-  | normal_expression '[' normal_expression ']'        // IndexExpression
-  | ('-' | '!') normal_expression                      // NegationExpression
-  | normal_expression ('*' | '/' | '%') normal_expression  // ArithmeticOrLogicalExpression
-  | normal_expression ('+' | '-') normal_expression        // ArithmeticOrLogicalExpression
-  | normal_expression ('<<' | '>>') normal_expression      // ArithmeticOrLogicalExpression
-  | normal_expression '&' normal_expression                // ArithmeticOrLogicalExpression
-  | normal_expression '^' normal_expression                // ArithmeticOrLogicalExpression
-  | normal_expression '|' normal_expression                // ArithmeticOrLogicalExpression
-  | normal_expression 
+  | lamdba_expression
+  | 'await' normal_expression                                   // AwaitExpression
+  | normal_expression '?.' IDENTIFIER                           // OptionalChainExpression
+  | normal_expression ('.' IDENTIFIER)                          // AccessMemberFieldExpression
+  | normal_expression '(' call_args? ')'                        // CallExpression
+  | normal_expression '.' tuple_index                           // TupleIndexingExpression
+  | normal_expression '[' normal_expression ']'                 // IndexExpression
+  | ('-' | '!') normal_expression                               // NegationExpression
+  | normal_expression ('*' | '/' | '%') normal_expression       // ArithmeticOrLogicalExpression
+  | normal_expression ('+' | '-') normal_expression             // ArithmeticOrLogicalExpression
+  | normal_expression ('<<' | '>>') normal_expression           // ArithmeticOrLogicalExpression
+  | normal_expression '&' normal_expression                     // ArithmeticOrLogicalExpression
+  | normal_expression '^' normal_expression                     // ArithmeticOrLogicalExpression
+  | normal_expression '|' normal_expression                     // ArithmeticOrLogicalExpression
+  | normal_expression
     ('==' | '!=' | '>' | '<' | '>=' | '<=') normal_expression   // ComparisonExpression
-  | normal_expression '&&' normal_expression  // LazyBooleanExpression
-  | normal_expression '||' normal_expression  // LazyBooleanExpression
+  | normal_expression '&&' normal_expression                    // AndBooleanExpression
+  | normal_expression '||' normal_expression                    // OrBooleanExpression
   | normal_expression ('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' |
-    '^=' | '<<=' | '>>=') normal_expression             // CompoundAssignmentExpression
-  | normal_expression ('..' | '...') normal_expression  // RangeExpression
+    '^=' | '<<=' | '>>=') normal_expression                     // CompoundAssignmentExpression
+  | assignment_left_hand '=' normal_expression                  // AssignmentExpression
+  | normal_expression ('..' | '...') normal_expression          // RangeExpression 
   ;
+assignment_left_hand
+  : IDENTIFIER
+  | IDENTIFIER ('.' IDENTIFIER)*
+  | IDENTIFIER '[' (normal_expression | expression_with_block) ']'
+  | IDENTIFIER ('.' tuple_index)
+  | array_destruct
+  ;
+array_destruct
+  : '['
+        IDENTIFIER (',' IDENTIFIER)*
+        (',' '...' (IDENTIFIER | array_destruct))?
+    ']'
+  ;
+lamdba_expression
+  : '$:' function_params '->' expression
+  ;
+
 expression_stmt
-  : expression ';'
+  : normal_expression ';'
   | expression_with_block
   ;
 simple_literal
@@ -127,7 +156,7 @@ simple_literal
   | 'false'
   ;
 array_literal
-  : '[' (normal_expression (',' normal_expression)*)? ']' // Array literal
+  : '[' (normal_expression (',' normal_expression)*)? ']'
   ;
 expression_with_block
   : in_block_expression
@@ -136,7 +165,7 @@ expression_with_block
   | match_expression
   ;
 in_block_expression
-  : '{' statement* expression '}'
+  : '{' statement* expression? '}'
   ;
 if_expression
    : 'if' normal_expression in_block_expression ( 'else' (in_block_expression | if_expression) )?
@@ -155,7 +184,7 @@ while_loop_expression
 for_loop_expression
   : 'for' for_loop_alias (',' for_loop_alias)?
     'in' normal_expression
-    ('{' /* Empty */ '}'| in_block_expression)
+    in_block_expression
   ;
 for_loop_alias
   : IDENTIFIER

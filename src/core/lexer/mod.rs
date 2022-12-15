@@ -1,3 +1,3 @@
-mod decls;
-mod impls;
+pub mod decls;
+pub mod impls;
 mod test;

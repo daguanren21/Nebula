@@ -1,0 +1,10 @@
+fn test_assignment_statement {
+  var price = 100, arr = [1,2,3,4];
+  price = 200;
+  arr[0] = 5;
+  arr[ if arr.len() > 3 { 3 } else { 0 } ] = 6;
+
+  var n1, n2, n3, n4, rest;
+  const bigger_arr = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+  [n1, n2, n3, ...[n4, ...rest]] = bigger_arr;
+}

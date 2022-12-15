@@ -14,7 +14,7 @@ fn test_match_expr {
    }
 
 // Range in match expression:
-   const randomNum = math::round(math::random() * 9)
+   const randomNum = math::round(math::random() * 9);
    match randomNum {
      1..3 => println("Small"),
      4 => println("Lucky middle"),
@@ -25,14 +25,14 @@ fn test_match_expr {
    }
 
 // Patterns in match expression
-   const fakeHttpErrResponse = ExceptionResponse::InvalidRequestParams
+   const fakeHttpErrResponse = ExceptionResponse::InvalidRequestParams;
    const result = match fakeHttpErrResponse {
       Exception::InvalidRequestParams => 1 + 3 / 2,
-      Exception::ResourceNotFound { resource, debugCode } => {
+      Exception::ResourceNotFound => {
         printf("Resource {} not found! ({})", resource, debugCode)
       }
-      Exception::NetworkIssue(timeCost, issueMsg) => printf(
+      Exception::NetworkIssue => printf(
         "Time cost: {}ms, issue: {}", timeCost, issueMsg
       ),
-   }
+   };
 }

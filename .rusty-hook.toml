@@ -1,0 +1,5 @@
+[hooks]
+pre-commit = "node scripts/antlr_check.js"
+
+[logging]
+verbose = true

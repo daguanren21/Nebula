@@ -1,7 +1,6 @@
-use crate::core::lexer::decls::{Lexer, TokenType};
-
 #[test]
 fn test_peek_numeric_tokens() {
+  use crate::core::lexer::decls::{Lexer, TokenType};
   let mut lexer = Lexer::new(
     "0x33FF\n\
      0X6d5a1\n\

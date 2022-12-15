@@ -495,10 +495,7 @@ impl<'a> Lexer<'a> {
       // special handling for dollar sign to create a lambda prefix
       if c == '$' && self.match_next_char(':') {
         self.consume_char(); // eat the colon
-        return Some(self.create_token(
-          TokenType::DollarColon,
-          String::from("$:"))
-        );
+        return Some(self.create_token(TokenType::DollarColon, String::from("$:")));
       }
 
       // match for operators, maybe two or three characters.

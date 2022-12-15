@@ -4,3 +4,4 @@ target
 specs/*.java
 specs/*.interp
 specs/*.tokens
+specs/.antlr
