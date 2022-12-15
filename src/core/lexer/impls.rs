@@ -76,7 +76,7 @@ impl<'a> Lexer<'a> {
   fn multiple_chars_lexing(
     &mut self,
     first: (TokenType, String),
-    second: HashMap<char, (TokenType, String, Option<(char, TokenType, String)>)>,
+    second: HashMap<char, (TokenType, String, Option<Vec<(char, TokenType, String)>>)>,
   ) -> Option<Token> {
     let (first_type, first_str) = first;
     if let Some(second_c) = self.chars.peek() {
@@ -84,12 +84,13 @@ impl<'a> Lexer<'a> {
         let (second_char, (second_type, second_str, third)) = second_option;
         if *second_c == *second_char {
           self.consume_char();
-          if let Some(third_c) = self.chars.peek() {
-            if let Some(third_unwrapped) = third {
-              let (third_char, third_type, third_str) = third_unwrapped;
-              if *third_c == *third_char {
-                self.consume_char();
-                return Some(self.create_token(*third_type, third_str.clone()));
+          if let (Some(third_c), Some(third)) = (self.chars.peek(), third) {
+            for third_option in third.iter() {
+              if let (third_char, third_type, third_str) = third_option {
+                if *third_c == *third_char {
+                  self.consume_char();
+                  return Some(self.create_token(*third_type, third_str.clone()));
+                }
               }
             }
           }
@@ -523,7 +524,10 @@ impl<'a> Lexer<'a> {
                 '.' => (
                     TokenType::DoubleDots,
                     String::from(".."),
-                    Some(('.', TokenType::ThreeDots, String::from("...")))
+                    Some(vec![
+                      ('.', TokenType::ThreeDots, String::from("...")),
+                      ('=', TokenType::DoubleDotsEqual, String::from("..=")),
+                    ])
                 )
             },
           )
@@ -586,7 +590,7 @@ impl<'a> Lexer<'a> {
                 '>' => (
                     TokenType::DoubleRightAngle,
                     String::from(">>"),
-                    Some(('=', TokenType::DoubleRightAngleEqual, String::from(">>=")))
+                    Some(vec![('=', TokenType::DoubleRightAngleEqual, String::from(">>="))])
                 )
             },
           )
@@ -598,7 +602,7 @@ impl<'a> Lexer<'a> {
                 '=' => (TokenType::LeftAngleEqual, String::from("<="), None),
                 '-' => (TokenType::LeftArrow, String::from("<-"), None),
                 '<' => (TokenType::DoubleLeftAngle, String::from("<<"),
-                    Some(('=', TokenType::DoubleLeftAngleEqual, String::from("<<=")))
+                    Some(vec![('=', TokenType::DoubleLeftAngleEqual, String::from("<<="))])
                 )
             },
           )

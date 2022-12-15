@@ -95,18 +95,18 @@ expression
   | struct_init_expression
   ;
 normal_expression // without struct init expression
-  : '(' normal_expression ')'
+  : '(' expression ')'                                          // GroupingExpression
   | simple_literal
   | array_literal
   | path_expression
   | lamdba_expression
-  | 'await' normal_expression                                   // AwaitExpression
+  | 'await' expression                                          // AwaitExpression
   | normal_expression '?.' IDENTIFIER                           // OptionalChainExpression
   | normal_expression ('.' IDENTIFIER)                          // AccessMemberFieldExpression
   | normal_expression '(' call_args? ')'                        // CallExpression
-  | normal_expression '.' tuple_index                           // TupleIndexingExpression
   | normal_expression '[' normal_expression ']'                 // IndexExpression
   | ('-' | '!') normal_expression                               // NegationExpression
+  | normal_expression ('**') normal_expression                  // ArithmeticOrLogicalExpression
   | normal_expression ('*' | '/' | '%') normal_expression       // ArithmeticOrLogicalExpression
   | normal_expression ('+' | '-') normal_expression             // ArithmeticOrLogicalExpression
   | normal_expression ('<<' | '>>') normal_expression           // ArithmeticOrLogicalExpression
@@ -117,23 +117,10 @@ normal_expression // without struct init expression
     ('==' | '!=' | '>' | '<' | '>=' | '<=') normal_expression   // ComparisonExpression
   | normal_expression '&&' normal_expression                    // AndBooleanExpression
   | normal_expression '||' normal_expression                    // OrBooleanExpression
-  | normal_expression ('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' |
-    '^=' | '<<=' | '>>=') normal_expression                     // CompoundAssignmentExpression
-  | assignment_left_hand '=' normal_expression                  // AssignmentExpression
-  | normal_expression ('..' | '...') normal_expression          // RangeExpression 
-  ;
-assignment_left_hand
-  : IDENTIFIER
-  | IDENTIFIER ('.' IDENTIFIER)*
-  | IDENTIFIER '[' (normal_expression | expression_with_block) ']'
-  | IDENTIFIER ('.' tuple_index)
-  | array_destruct
-  ;
-array_destruct
-  : '['
-        IDENTIFIER (',' IDENTIFIER)*
-        (',' '...' (IDENTIFIER | array_destruct))?
-    ']'
+  | assignment_left_hand ('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' |
+    '^=' | '<<=' | '>>=') expression                            // CompoundAssignmentExpression
+  | assignment_left_hand '=' expression                         // AssignmentExpression
+  | normal_expression ('..' | '..=') normal_expression          // RangeExpression 
   ;
 lamdba_expression
   : '$:' function_params '->' expression
@@ -191,9 +178,9 @@ for_loop_alias
   | '_'
   ;
 path_expression
-  : path_expression_start ('::' IDENTIFIER)*
+  : path_expression_head ('::' IDENTIFIER)*
   ;
-path_expression_start
+path_expression_head
   : IDENTIFIER
   | 'crate'
   | 'self'
@@ -227,8 +214,17 @@ struct_init_field
 call_args
   : expression (',' expression)*
   ;
-tuple_index
-  : DECIMAL_LIT
+assignment_left_hand
+  : IDENTIFIER
+  | IDENTIFIER ('.' IDENTIFIER)*
+  | IDENTIFIER '[' (normal_expression | expression_with_block) ']'
+  | array_destruct
+  ;
+array_destruct
+  : '['
+        IDENTIFIER (',' IDENTIFIER)*
+        (',' '...' (IDENTIFIER | array_destruct))?
+    ']'
   ;
 
 // -------------- Struct Defintion

@@ -107,6 +107,7 @@ pub enum TokenType {
   CaretEqual,            // ^=
   DoubleDots,            // ..
   ThreeDots,             // ...
+  DoubleDotsEqual,       // ..=
   Question,              // ?
   QuestionDot,           // ?.
 
@@ -120,7 +121,7 @@ pub enum TokenType {
   EOF,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
   pub raw: String,
   pub kind: TokenType,
