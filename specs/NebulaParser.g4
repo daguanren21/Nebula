@@ -143,7 +143,7 @@ simple_literal
   | 'false'
   ;
 array_literal
-  : '[' (normal_expression (',' normal_expression)*)? ']'
+  : '[' (expression (',' expression)*)? ']'
   ;
 expression_with_block
   : in_block_expression
@@ -195,12 +195,12 @@ match_pattern
   ;
 match_condition
   : simple_literal ('|' simple_literal)*      // simple literal as pattern
-  | DECIMAL_LIT ('..' | '...') DECIMAL_LIT    // range as pattern
+  | DECIMAL_LIT ('..' | '..=') DECIMAL_LIT    // range as pattern
   | enum_pattern                              // Enum pattern
   | '_'                                       // fallback pattern
   ;
 enum_pattern
-  : IDENTIFIER '::' IDENTIFIER
+  : path_expression_head '::' IDENTIFIER
   ;
 struct_init_expression
   : (IDENTIFIER | 'struct') '{' (struct_init_field ',')+ '}'

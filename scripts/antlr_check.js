@@ -9,6 +9,9 @@ function print_red_bold_message(text) {
 function print_green_bold_message(text) {
   console.log(`\x1b[32m\x1b[1m${text}\x1b[0m`);
 }
+function print_blue_bold_message(text) {
+  console.log(`\x1b[34m\x1b[1m${text}\x1b[0m`);
+}
 
 // start antlrv4-parse check
 const antlr4_parse_check = () => {
@@ -43,6 +46,8 @@ const cargo_test_callback = (error, stdout) => {
     print_green_bold_message('[INFO] cargo test succeed!');
     console.log(stdout);
 
+    // start antlr4-parse check
+    print_blue_bold_message('[INFO] start antlr4-parse check...');
     antlr4_parse_check();
   }
 }
@@ -55,9 +60,11 @@ const cargo_check_callback = (error) => {
     print_green_bold_message('[INFO] cargo check succeed!');
 
     // start cargo test
+    print_blue_bold_message('[INFO] start cargo test...');
     exec('cargo test', { shell: true }, cargo_test_callback);
   }
 }
 
 // start cargo check
+print_blue_bold_message('[INFO] start cargo check...');
 exec('cargo check', { shell: true },cargo_check_callback);
