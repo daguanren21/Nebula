@@ -18,6 +18,7 @@ statement
   | return_stmt
   | 'break' expression? ';'
   | 'continue' ';'
+  | function_stmt
   ;
 
 // ------------ Use statement

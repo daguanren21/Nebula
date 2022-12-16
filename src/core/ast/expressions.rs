@@ -20,7 +20,7 @@ pub enum NormalExpression {
   /// An array literal. such as `[3.14, some_returns(), arr[4]]`. <br/>
   /// Properties: elements, start, end             
   ArrayLiteral(Vec<Expression>, Location, Location),
-  /// A Path expression. 
+  /// A Path expression.
   /// Usually used to access some fields under a namespace created by `struct` or `enum`. <br/>
   /// Examples: `a::b::c`, `HttpStatus::NotFound`, `self::a::b`, `crate::a::b` <br/>
   /// Properties: path expression
@@ -60,7 +60,11 @@ pub enum NormalExpression {
   /// `a **= 1`, `a &= 1`, `a |= 1`, `a ^= 1`, <br/>
   /// `a <<= 1`, `a >>= 1`, `a &&= 1`, `a ||= 1` <br/>
   /// Properties: left hand, compound assignment operator, right hand
-  CompoundAssignmentExpression(AssignmentLeftHand, CompoundAssignmentOperator, Box<Expression>),
+  CompoundAssignmentExpression(
+    AssignmentLeftHand,
+    CompoundAssignmentOperator,
+    Box<Expression>,
+  ),
   /// A Range expression. <br/>
   /// Examples: `1..5`, `1..=5` <br/>
   /// Properties: start, end, inclusive
@@ -78,7 +82,7 @@ pub enum ExpressionWithBlock {
     condition: Box<Expression>,
     then_block: Box<Statement>,
     else_if: Vec<(Box<Expression>, Box<Statement>)>,
-    else_block: Option<Box<Statement>,>,
+    else_block: Option<Box<Statement>>,
   },
   WhileExpression {
     condition: Box<Expression>,
@@ -160,19 +164,19 @@ pub enum BinaryOperator {
 
 #[derive(Debug, Clone)]
 pub enum CompoundAssignmentOperator {
-  Addition,            // +=
-  Subtraction,         // -=
-  Multiplication,      // *=
-  Division,            // /=
-  Modulo,              // %=
-  Exponent,            // **=
-  BitwiseAnd,          // &=
-  BitwiseOr,           // |=
-  BitwiseXor,          // ^=
-  BitwiseShiftLeft,    // <<=
-  BitwiseShiftRight,   // >>=
-  LogicalAnd,          // &&=
-  LogicalOr,           // ||=
+  Addition,          // +=
+  Subtraction,       // -=
+  Multiplication,    // *=
+  Division,          // /=
+  Modulo,            // %=
+  Exponent,          // **=
+  BitwiseAnd,        // &=
+  BitwiseOr,         // |=
+  BitwiseXor,        // ^=
+  BitwiseShiftLeft,  // <<=
+  BitwiseShiftRight, // >>=
+  LogicalAnd,        // &&=
+  LogicalOr,         // ||=
 }
 
 #[derive(Debug, Clone)]
@@ -202,7 +206,7 @@ pub enum AssignmentLeftHand {
 pub struct ArrayDestructAssign {
   /// Deconstructing an array into these variables.
   pub vars: Vec<Identifier>,
-  /// Deconstructing the rest of parent array into a single variable, 
+  /// Deconstructing the rest of parent array into a single variable,
   /// or starting another array destructing right after.
   pub rest: Option<ArrayDestructRest>,
 }
