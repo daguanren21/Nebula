@@ -1,7 +1,5 @@
-use super::{
-  shared::{Identifier, Location},
-  statements::Statement,
-};
+use crate::core::shared::{Location, Identifier};
+use super::{statements::Statement};
 
 #[derive(Debug, Clone)]
 pub enum Expression {
