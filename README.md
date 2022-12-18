@@ -13,3 +13,9 @@
      to build efficient software.
     </b></samp>
 </p>
+
+## Requirements
+
+- Python 3 + PIP environment
+- Java JRE >= 11
+- [Antlr Tools](https://github.com/antlr/antlr4-tools): `pip install antlr4-tools`
