@@ -1,9 +1,10 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::fmt::{Display, Formatter};
 use std::iter::Peekable;
 use std::str::Chars;
 use thiserror::Error;
+
+use crate::core::shared::ast::Position;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum TokenType {
@@ -127,13 +128,13 @@ pub struct Token {
   pub kind: TokenType,
   pub offset: usize,
   pub line: usize,
-  pub col: usize,
+  pub col: i64,
 }
 
 pub struct Lexer<'a> {
   // Human readable position in file
   pub cur_line: usize,
-  pub cur_col: usize,
+  pub cur_col: i64,
 
   // offset cursor of character moving
   pub offset_cursor: usize,
@@ -148,30 +149,20 @@ pub struct Lexer<'a> {
   pub errors: Vec<LexerError<'a>>,
 }
 
-#[derive(Debug)]
-pub struct TokenPos {
-  pub line: usize,
-  pub col: usize,
-}
-impl Display for TokenPos {
-  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    write!(f, "line {}:{}", self.line, self.col)
-  }
-}
 
 #[derive(Debug, Error)]
 pub enum LexerError<'d> {
   #[error("Punctuation {kind} is mismatched at line {pos}")]
-  ImbalancedPair { kind: &'d str, pos: TokenPos },
+  ImbalancedPair { kind: &'d str, pos: Position },
 
   #[error("Invalid{numeric_type}number format at line {pos}")]
-  InvalidFormatNumber { numeric_type: String, pos: TokenPos },
+  InvalidFormatNumber { numeric_type: String, pos: Position },
 
   #[error("Invalid empty char at line {pos}")]
-  InvalidEmptyChar { pos: TokenPos },
+  InvalidEmptyChar { pos: Position },
 
   #[error("Unclosed char literal at line {pos}")]
-  UnclosedCharLiteral { pos: TokenPos },
+  UnclosedCharLiteral { pos: Position },
 }
 
 pub enum NumberRadix {

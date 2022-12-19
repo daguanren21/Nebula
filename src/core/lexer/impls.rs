@@ -1,4 +1,5 @@
-use crate::core::lexer::decls::{Lexer, LexerError, NumberRadix, Token, TokenPos, TokenType};
+use crate::core::lexer::decls::{Lexer, LexerError, NumberRadix, Token, TokenType};
+use crate::core::shared::ast::Position;
 use crate::hashmap;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -14,8 +15,8 @@ impl<'a> Lexer<'a> {
     }
   }
 
-  fn get_current_pos(&self) -> TokenPos {
-    TokenPos {
+  fn get_current_pos(&self) -> Position {
+    Position {
       line: self.cur_line,
       col: self.cur_col,
     }

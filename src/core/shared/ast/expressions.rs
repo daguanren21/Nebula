@@ -1,4 +1,4 @@
-use crate::core::shared::{Location, Identifier};
+use crate::core::shared::ast::{Position, Identifier};
 use super::{statements::Statement};
 
 #[derive(Debug, Clone)]
@@ -11,13 +11,13 @@ pub enum Expression {
 pub enum NormalExpression {
   /// A Expression with parenthesis. <br/>
   /// Properties: expression, start, end
-  Grouping(Box<Expression>, Location, Location),
+  Grouping(Box<Expression>, Position, Position),
   /// A simple literal. such as a number, string, etc. <br/>
   /// Properties: literal, token location
-  SimpleLiteral(SimpleLiteral, Location),
+  SimpleLiteral(SimpleLiteral, Position),
   /// An array literal. such as `[3.14, some_returns(), arr[4]]`. <br/>
   /// Properties: elements, start, end             
-  ArrayLiteral(Vec<Expression>, Location, Location),
+  ArrayLiteral(Vec<Expression>, Position, Position),
   /// A Path expression.
   /// Usually used to access some fields under a namespace created by `struct` or `enum`. <br/>
   /// Examples: `a::b::c`, `HttpStatus::NotFound`, `self::a::b`, `crate::a::b` <br/>
@@ -114,8 +114,8 @@ pub enum SimpleLiteral {
 #[derive(Debug, Clone)]
 pub enum PathExpressionHead {
   Identifier(Identifier),
-  SelfSymbol(Location),
-  CrateSymbol(Location),
+  SelfSymbol(Position),
+  CrateSymbol(Position),
 }
 
 #[derive(Debug, Clone)]
@@ -232,7 +232,7 @@ pub enum MatchArmPattern {
   RangePattern(Box<NormalExpression>, Box<NormalExpression>, bool),
   /// Fallback pattern. <br/>
   /// Examples: `_` <br/>
-  Fallback(Location),
+  Fallback(Position),
 }
 
 #[derive(Debug, Clone)]

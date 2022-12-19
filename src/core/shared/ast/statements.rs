@@ -1,5 +1,4 @@
-use crate::core::shared::Identifier;
-use super::{expressions::Expression,};
+use super::{expressions::Expression, Identifier,};
 
 #[derive(Debug, Clone)]
 pub enum Statement {
@@ -15,7 +14,7 @@ pub enum Statement {
 }
 
 #[derive(Debug, Clone)]
-pub enum GlobalStatement {
+pub enum TopStatement {
   UseStatement(Vec<UseEntry>),
   EnumStatement {
     name: Identifier,
