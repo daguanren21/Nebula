@@ -1,9 +1,9 @@
 grammar NebulaParser;
 
 // -------------------- Parser Definition
-entry_file: global_statement* EOF;
+entry_file: top_statement* EOF;
 
-global_statement
+top_statement
   : use_stmt
   | enum_stmt
   | function_stmt

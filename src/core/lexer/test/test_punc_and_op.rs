@@ -57,12 +57,16 @@ fn test_peek_operators_and_punctuation_tokens() {
   }
 
   lexer.errors.iter().for_each(|e| {
-    // crate::utils::log::error(&format!("{}", e.to_string()));
+    crate::utils::log::error(&format!("{}", e.to_string()));
     got_lexer_errors.push(e);
   });
   assert_eq!(got_lexer_errors.len(), 1);
-  if let CompileError::ImbalancedPair { pos, kind } = got_lexer_errors[0] {
-    assert_eq!(*kind, "parenthesis");
+  if let CompileError::ImbalancedPair {
+    pos,
+    punc_str: kind,
+  } = got_lexer_errors[0]
+  {
+    assert_eq!(*kind, ")");
     assert_eq!(pos.line, 5);
     assert_eq!(pos.col, 11);
   }

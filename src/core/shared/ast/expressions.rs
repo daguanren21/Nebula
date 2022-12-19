@@ -9,62 +9,62 @@ pub enum Expression {
 
 #[derive(Debug, Clone)]
 pub enum NormalExpression {
-  /// A Expression with parenthesis. <br/>
+  /// A Expression with parenthesis. <br>
   /// Properties: expression, start, end
   Grouping(Box<Expression>, Position, Position),
-  /// A simple literal. such as a number, string, etc. <br/>
+  /// A simple literal. such as a number, string, etc. <br>
   /// Properties: literal, token location
   SimpleLiteral(SimpleLiteral, Position),
-  /// An array literal. such as `[3.14, some_returns(), arr[4]]`. <br/>
+  /// An array literal. such as `[3.14, some_returns(), arr[4]]`. <br>
   /// Properties: elements, start, end             
   ArrayLiteral(Vec<Expression>, Position, Position),
   /// A Path expression.
-  /// Usually used to access some fields under a namespace created by `struct` or `enum`. <br/>
-  /// Examples: `a::b::c`, `HttpStatus::NotFound`, `self::a::b`, `crate::a::b` <br/>
+  /// Usually used to access some fields under a namespace created by `struct` or `enum`. <br>
+  /// Examples: `a::b::c`, `HttpStatus::NotFound`, `self::a::b`, `crate::a::b` <br>
   /// Properties: path expression
   PathExpression(PathExpression),
-  /// A lambda expression. Prefix with `$:` <br/>
-  /// Examples: `$: a, b -> a + b` <br/>
+  /// A lambda expression. Prefix with `$:` <br>
+  /// Examples: `$: a, b -> a + b` <br>
   LambdaExpression(LambdaExpression),
-  /// A Await expression. Prefix with `await`. <br/>
-  /// Examples: `await a`, `await a()` <br/>
+  /// A Await expression. Prefix with `await`. <br>
+  /// Examples: `await a`, `await a()` <br>
   /// Properties: expression returns a `Promise`
   AwaitExpression(Box<Expression>),
-  /// A Get expression. <br/>
-  /// Examples: `a.b` <br/>
+  /// A Get expression. <br>
+  /// Examples: `a.b` <br>
   /// Properties: source, field, optional
   GetExpression(Box<NormalExpression>, Identifier, bool),
-  /// A Call expression. <br/>
-  /// Examples: `a()`, `a(1, 2, 3)` <br/>
+  /// A Call expression. <br>
+  /// Examples: `a()`, `a(1, 2, 3)` <br>
   /// Properties: source, arguments
   CallExpression(Box<NormalExpression>, Vec<NormalExpression>),
-  /// A Index expression. <br/>
-  /// Examples: `a[some_var]`, `a[1 + 2]` <br/>
+  /// A Index expression. <br>
+  /// Examples: `a[some_var]`, `a[1 + 2]` <br>
   /// Properties: source, index
   IndexExpression(Box<NormalExpression>, Box<NormalExpression>),
-  /// A Unary expression. <br/>
-  /// Examples: `-a`, `!a` <br/>
+  /// A Unary expression. <br>
+  /// Examples: `-a`, `!a` <br>
   /// Properties: expression, unary operator
   UnaryExpression(Box<NormalExpression>, UnaryOperator),
-  /// A Binary expression. <br/>
-  /// Examples: `a + b`, `a * b` <br/>
+  /// A Binary expression. <br>
+  /// Examples: `a + b`, `a * b` <br>
   /// Properties: left hand, binary operator, right hand
   BinaryExpression(Box<NormalExpression>, BinaryOperator, Box<NormalExpression>),
-  /// A Assignment expression. <br/>
-  /// Examples: `a = 1`, `a.b = 1`, `a[0] = 1`, `[a, b] = [1, 2]` <br/>
+  /// A Assignment expression. <br>
+  /// Examples: `a = 1`, `a.b = 1`, `a[0] = 1`, `[a, b] = [1, 2]` <br>
   AssignmentExpression(AssignmentLeftHand, Box<Expression>),
-  /// A Compound assignment expression. <br/>
-  /// Examples: `a += 1`, `a -= 1`, `a *= 1`, `a /= 1`, `a %= 1`, <br/>
-  /// `a **= 1`, `a &= 1`, `a |= 1`, `a ^= 1`, <br/>
-  /// `a <<= 1`, `a >>= 1`, `a &&= 1`, `a ||= 1` <br/>
+  /// A Compound assignment expression. <br>
+  /// Examples: `a += 1`, `a -= 1`, `a *= 1`, `a /= 1`, `a %= 1`, <br>
+  /// `a **= 1`, `a &= 1`, `a |= 1`, `a ^= 1`, <br>
+  /// `a <<= 1`, `a >>= 1`, `a &&= 1`, `a ||= 1` <br>
   /// Properties: left hand, compound assignment operator, right hand
   CompoundAssignmentExpression(
     AssignmentLeftHand,
     CompoundAssignmentOperator,
     Box<Expression>,
   ),
-  /// A Range expression. <br/>
-  /// Examples: `1..5`, `1..=5` <br/>
+  /// A Range expression. <br>
+  /// Examples: `1..5`, `1..=5` <br>
   /// Properties: start, end, inclusive
   RangeExpression(Box<NormalExpression>, Box<NormalExpression>, bool),
 }
@@ -181,21 +181,21 @@ pub enum CompoundAssignmentOperator {
 pub enum AssignmentLeftHand {
   /// Maybe a variable name.
   ///
-  /// Example: `a = 1` <br/>
+  /// Example: `a = 1` <br>
   Identifier(Identifier),
   /// Deconstructing an array into several variables.
   ///
-  /// Example: `[a, b] = [1, 2]` <br/>
+  /// Example: `[a, b] = [1, 2]` <br>
   /// Properties: variables' identifiers
   Destruct(ArrayDestructAssign),
   /// Accessing a field of another expression, must be a safe get rather than an optional get.
   ///
-  /// Example: `a.b = 1` <br/>
+  /// Example: `a.b = 1` <br>
   /// Properties: Get expression itself
   GetExpression(Box<Expression>),
   /// Indexing an expression.
   ///
-  /// Example: `a[0] = 1` <br/>
+  /// Example: `a[0] = 1` <br>
   /// Properties: Index expression itself
   IndexExpression(Box<Expression>),
 }
@@ -221,17 +221,17 @@ pub enum ArrayDestructRest {
 
 #[derive(Debug, Clone)]
 pub enum MatchArmPattern {
-  /// Single pattern. <br/>
-  /// Examples: `11.6`, `true`, `0x3E` <br/>
+  /// Single pattern. <br>
+  /// Examples: `11.6`, `true`, `0x3E` <br>
   Single(MatchSingleArm),
-  /// Mutiple patterns. <br/>
-  /// Examples: `11.6 | 10.21` <br/>
+  /// Mutiple patterns. <br>
+  /// Examples: `11.6 | 10.21` <br>
   Mutiple(Vec<MatchSingleArm>),
-  /// A Range pattern. <br/>
-  /// Examples: `1..5`, `1..=5` <br/>
+  /// A Range pattern. <br>
+  /// Examples: `1..5`, `1..=5` <br>
   RangePattern(Box<NormalExpression>, Box<NormalExpression>, bool),
-  /// Fallback pattern. <br/>
-  /// Examples: `_` <br/>
+  /// Fallback pattern. <br>
+  /// Examples: `_` <br>
   Fallback(Position),
 }
 

@@ -1,9 +1,11 @@
+use std::cell::RefCell;
+use std::collections::HashMap;
+
+use super::decls::{PairPuncEntry, PairPunctuation};
 use crate::core::lexer::decls::{Lexer, NumberRadix, Token, TokenType};
 use crate::core::shared::ast::Position;
 use crate::core::shared::compile_errors::CompileError;
 use crate::hashmap;
-use std::cell::RefCell;
-use std::collections::HashMap;
 
 impl<'a> Lexer<'a> {
   fn create_token(&mut self, token_type: TokenType, raw: String) -> Token {
@@ -50,29 +52,52 @@ impl<'a> Lexer<'a> {
     }
   }
 
-  fn push_pair_punctuator(&mut self, kind: &'a str) {
-    let punc_level = self.pair_balance.entry(&kind).or_insert(0);
-    *punc_level += 1;
+  fn push_pair_punctuator(
+    &mut self,
+    kind: PairPunctuation,
+    token_type: TokenType,
+  ) -> Option<(TokenType, String)> {
+    let current_pos = self.get_current_pos();
+    let punc_entry = self.pair_balance.entry(kind).or_insert(PairPuncEntry {
+      count: 0,
+      positions: vec![],
+    });
+    punc_entry.count += 1;
+    punc_entry.positions.push(current_pos);
+    Some((token_type, kind.get_left()))
   }
 
-  fn pop_pair_punctuator(&mut self, kind: &'a str) {
+  fn pop_pair_punctuator(
+    &mut self,
+    kind: PairPunctuation,
+    token_type: TokenType,
+  ) -> Option<(TokenType, String)> {
     if !self.pair_balance.contains_key(&kind) {
-      // a bare close punctuator occurred
-      return self.errors.push(CompileError::ImbalancedPair {
-        kind,
+      // a bare close punctuator showed before the open punctuator occurred
+      self.errors.push(CompileError::ImbalancedPair {
+        punc_str: kind.get_right(),
         pos: self.get_current_pos(),
       });
+      return None;
     }
 
-    let level = self.pair_balance.get_mut(&kind).unwrap();
-    if *level - 1 < 0 {
+    let punc_entry = self.pair_balance.get_mut(&kind).unwrap();
+    if punc_entry.count - 1 < 0 {
       self.errors.push(CompileError::ImbalancedPair {
-        kind,
+        punc_str: kind.get_right(),
         pos: self.get_current_pos(),
       });
+      // Don't return None here, because we still want to give the token.
+      // Because we don't want to break the whole lexing process's consistency.
+      // "If there's a punctuator, there must be a token."
+      // Although it's not balanced now, the errors has already been counted.
+      // We will report it at the end of the compilation.
     } else {
-      *level -= 1;
+      punc_entry.count -= 1;
+      punc_entry.positions.pop();
     }
+
+    Some((token_type, kind.get_right()))
   }
 
   fn multiple_chars_lexing(
@@ -113,30 +138,12 @@ impl<'a> Lexer<'a> {
     match c {
       ';' => Some((TokenType::Semi, String::from(";"))),
       ',' => Some((TokenType::Comma, String::from(","))),
-      '(' => {
-        self.push_pair_punctuator("parenthesis");
-        Some((TokenType::LeftParen, String::from("(")))
-      }
-      ')' => {
-        self.pop_pair_punctuator("parenthesis");
-        Some((TokenType::RightParen, String::from(")")))
-      }
-      '{' => {
-        self.push_pair_punctuator("brace");
-        Some((TokenType::LeftBrace, String::from("{")))
-      }
-      '}' => {
-        self.pop_pair_punctuator("brace");
-        Some((TokenType::RightBrace, String::from("}")))
-      }
-      '[' => {
-        self.push_pair_punctuator("bracket");
-        Some((TokenType::LeftBracket, String::from("[")))
-      }
-      ']' => {
-        self.pop_pair_punctuator("bracket");
-        Some((TokenType::RightBracket, String::from("]")))
-      }
+      '(' => self.push_pair_punctuator(PairPunctuation::Parenthesis, TokenType::LeftParen),
+      ')' => self.pop_pair_punctuator(PairPunctuation::Parenthesis, TokenType::RightParen),
+      '{' => self.push_pair_punctuator(PairPunctuation::Brace, TokenType::LeftBrace),
+      '}' => self.pop_pair_punctuator(PairPunctuation::Brace, TokenType::RightBrace),
+      '[' => self.push_pair_punctuator(PairPunctuation::Bracket, TokenType::LeftBracket),
+      ']' => self.pop_pair_punctuator(PairPunctuation::Bracket, TokenType::RightBracket),
       _ => None,
     }
   }
@@ -429,47 +436,7 @@ impl<'a> Lexer<'a> {
     Some(self.create_token(TokenType::String, String::from_iter(chars_collect)))
   }
 
-  pub fn new(contents: &'a str) -> Lexer<'a> {
-    Lexer {
-      cur_line: 1,
-      cur_col: 1,
-      offset_cursor: 0,
-      chars: contents.chars().peekable(),
-      pair_balance: HashMap::new(),
-      reserved_words_map: RefCell::new(hashmap! {
-          "use" => TokenType::Use,
-          "pub" => TokenType::Pub,
-          "as" => TokenType::As,
-          "if" => TokenType::If,
-          "else" => TokenType::Else,
-          "for" => TokenType::For,
-          "each" => TokenType::Each,
-          "in" => TokenType::In,
-          "match" => TokenType::Match,
-          "break" => TokenType::Break,
-          "continue" => TokenType::Continue,
-          "var" => TokenType::Var,
-          "const" => TokenType::Const,
-          "fn" => TokenType::Fn,
-          "return" => TokenType::Return,
-          "struct" => TokenType::Struct,
-          "new" => TokenType::New,
-          "trait" => TokenType::Trait,
-          "enum" => TokenType::Enum,
-          "impl" => TokenType::Impl,
-          "async" => TokenType::Async,
-          "await" => TokenType::Await,
-          "true" => TokenType::True,
-          "false" => TokenType::False,
-          "nil" => TokenType::Nil,
-          "crate" => TokenType::Crate,
-          "self" => TokenType::_Self_
-      }),
-      errors: Vec::<CompileError>::new(),
-    }
-  }
-
-  pub fn peek_next_token(&mut self) -> Option<Token> {
+  fn peek_next_token(&mut self) -> Option<Token> {
     self.skip_whitespaces();
     while let Some(c) = self.consume_char() {
       // punctuations are all single-character
@@ -651,6 +618,67 @@ impl<'a> Lexer<'a> {
       };
     }
     Some(self.create_token(TokenType::EOF, String::from("\0")))
+  }
+
+  pub fn new(contents: &'a str) -> Lexer<'a> {
+    Self {
+      cur_line: 1,
+      cur_col: 1,
+      offset_cursor: 0,
+      chars: contents.chars().peekable(),
+      pair_balance: HashMap::new(),
+      reserved_words_map: RefCell::new(hashmap! {
+          "use" => TokenType::Use,
+          "pub" => TokenType::Pub,
+          "as" => TokenType::As,
+          "if" => TokenType::If,
+          "else" => TokenType::Else,
+          "for" => TokenType::For,
+          "each" => TokenType::Each,
+          "in" => TokenType::In,
+          "match" => TokenType::Match,
+          "break" => TokenType::Break,
+          "continue" => TokenType::Continue,
+          "var" => TokenType::Var,
+          "const" => TokenType::Const,
+          "fn" => TokenType::Fn,
+          "return" => TokenType::Return,
+          "struct" => TokenType::Struct,
+          "new" => TokenType::New,
+          "trait" => TokenType::Trait,
+          "enum" => TokenType::Enum,
+          "impl" => TokenType::Impl,
+          "async" => TokenType::Async,
+          "await" => TokenType::Await,
+          "true" => TokenType::True,
+          "false" => TokenType::False,
+          "nil" => TokenType::Nil,
+          "crate" => TokenType::Crate,
+          "self" => TokenType::_Self_
+      }),
+      errors: Vec::<CompileError>::new(),
+    }
+  }
+
+  pub fn pick_all_tokens(&mut self) -> Vec<Token> {
+    let mut tokens = Vec::new();
+    while let Some(token) = self.next() {
+      tokens.push(token);
+    }
+
+    // Check if there are any unclosed open punctuataion
+    for (kind, entry) in self.pair_balance.iter() {
+      if entry.count > 0 {
+        for pos in entry.positions.iter() {
+          self.errors.push(CompileError::ImbalancedPair {
+            punc_str: kind.get_left(),
+            pos: *pos,
+          });
+        }
+      }
+    }
+
+    tokens
   }
 }
 

@@ -1,8 +1,10 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter};
 use std::iter::Peekable;
 use std::str::Chars;
 
+use crate::core::shared::ast::Position;
 use crate::core::shared::compile_errors::CompileError;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -139,13 +141,13 @@ pub struct Lexer<'a> {
   pub offset_cursor: usize,
 
   pub chars: Peekable<Chars<'a>>,
-  pub pair_balance: HashMap<&'a str, i32>,
+  pub pair_balance: HashMap<PairPunctuation, PairPuncEntry>,
 
   // keywords map
   pub reserved_words_map: RefCell<HashMap<&'a str, TokenType>>,
 
   // collecting errors, don't interrupt lexing process
-  pub errors: Vec<CompileError<'a>>,
+  pub errors: Vec<CompileError>,
 }
 
 pub enum NumberRadix {
@@ -153,4 +155,44 @@ pub enum NumberRadix {
   Octal,
   Binary,
   Hexadecimal,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum PairPunctuation {
+  Parenthesis,
+  Brace,
+  Bracket,
+}
+impl PairPunctuation {
+  pub fn get_left(&self) -> String {
+    match self {
+      PairPunctuation::Parenthesis => "(".to_string(),
+      PairPunctuation::Brace => "{".to_string(),
+      PairPunctuation::Bracket => "[".to_string(),
+    }
+  }
+  pub fn get_right(&self) -> String {
+    match self {
+      PairPunctuation::Parenthesis => ")".to_string(),
+      PairPunctuation::Brace => "}".to_string(),
+      PairPunctuation::Bracket => "[".to_string(),
+    }
+  }
+}
+impl Display for PairPunctuation {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    write!(
+      f,
+      "{}",
+      match self {
+        PairPunctuation::Parenthesis => "parenthesis".to_string(),
+        PairPunctuation::Brace => "brace".to_string(),
+        PairPunctuation::Bracket => "bracket".to_string(),
+      }
+    )
+  }
+}
+pub struct PairPuncEntry {
+  pub count: i32,
+  pub positions: Vec<Position>,
 }
