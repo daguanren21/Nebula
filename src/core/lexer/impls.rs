@@ -1,5 +1,6 @@
-use crate::core::lexer::decls::{Lexer, LexerError, NumberRadix, Token, TokenType};
+use crate::core::lexer::decls::{Lexer, NumberRadix, Token, TokenType};
 use crate::core::shared::ast::Position;
+use crate::core::shared::compile_errors::CompileError;
 use crate::hashmap;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -57,7 +58,7 @@ impl<'a> Lexer<'a> {
   fn pop_pair_punctuator(&mut self, kind: &'a str) {
     if !self.pair_balance.contains_key(&kind) {
       // a bare close punctuator occurred
-      return self.errors.push(LexerError::ImbalancedPair {
+      return self.errors.push(CompileError::ImbalancedPair {
         kind,
         pos: self.get_current_pos(),
       });
@@ -65,7 +66,7 @@ impl<'a> Lexer<'a> {
 
     let level = self.pair_balance.get_mut(&kind).unwrap();
     if *level - 1 < 0 {
-      self.errors.push(LexerError::ImbalancedPair {
+      self.errors.push(CompileError::ImbalancedPair {
         kind,
         pos: self.get_current_pos(),
       });
@@ -87,11 +88,10 @@ impl<'a> Lexer<'a> {
           self.consume_char();
           if let (Some(third_c), Some(third)) = (self.chars.peek(), third) {
             for third_option in third.iter() {
-              if let (third_char, third_type, third_str) = third_option {
-                if *third_c == *third_char {
-                  self.consume_char();
-                  return Some(self.create_token(*third_type, third_str.clone()));
-                }
+              let (third_char, third_type, third_str) = third_option;
+              if *third_c == *third_char {
+                self.consume_char();
+                return Some(self.create_token(*third_type, third_str.clone()));
               }
             }
           }
@@ -230,7 +230,7 @@ impl<'a> Lexer<'a> {
         2 => String::from(" binary "),
         _ => return None,
       };
-      self.errors.push(LexerError::InvalidFormatNumber {
+      self.errors.push(CompileError::InvalidFormatNumber {
         numeric_type: radix_string,
         pos: self.get_current_pos(),
       });
@@ -257,7 +257,7 @@ impl<'a> Lexer<'a> {
   ) -> Option<Token> {
     if after.len() <= 1 {
       // length must be greater than 1 because already contains a symbol ('.' or 'e')
-      self.errors.push(LexerError::InvalidFormatNumber {
+      self.errors.push(CompileError::InvalidFormatNumber {
         numeric_type: match numeric_type {
           TokenType::Exponent => String::from(" exponent "),
           TokenType::Float => String::from(" float "),
@@ -377,14 +377,14 @@ impl<'a> Lexer<'a> {
               self.consume_char();
               return Some(self.create_token(TokenType::Char, String::from(escape_char)));
             } else {
-              self.errors.push(LexerError::UnclosedCharLiteral {
+              self.errors.push(CompileError::UnclosedCharLiteral {
                 pos: self.get_current_pos(),
               })
             }
           }
         }
       } else if c == '\'' {
-        self.errors.push(LexerError::InvalidEmptyChar {
+        self.errors.push(CompileError::InvalidEmptyChar {
           pos: self.get_current_pos(),
         });
       } else {
@@ -394,7 +394,7 @@ impl<'a> Lexer<'a> {
           self.consume_char();
           return Some(self.create_token(TokenType::Char, got_char.to_string()));
         } else {
-          self.errors.push(LexerError::UnclosedCharLiteral {
+          self.errors.push(CompileError::UnclosedCharLiteral {
             pos: self.get_current_pos(),
           })
         }
@@ -465,7 +465,7 @@ impl<'a> Lexer<'a> {
           "crate" => TokenType::Crate,
           "self" => TokenType::_Self_
       }),
-      errors: Vec::<LexerError>::new(),
+      errors: Vec::<CompileError>::new(),
     }
   }
 

@@ -1,4 +1,4 @@
-use super::{expressions::Expression, Identifier,};
+use super::{expressions::Expression, Identifier};
 
 #[derive(Debug, Clone)]
 pub enum Statement {
@@ -67,4 +67,3 @@ pub struct FunctionSignature {
   name: Identifier,
   params: Vec<Identifier>,
 }
-

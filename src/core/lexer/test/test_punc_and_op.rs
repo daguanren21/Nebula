@@ -1,6 +1,8 @@
 #[test]
 fn test_peek_operators_and_punctuation_tokens() {
-  use crate::core::lexer::decls::{Lexer, LexerError, TokenType};
+  use crate::core::lexer::decls::{Lexer, TokenType};
+  use crate::core::shared::compile_errors::CompileError;
+
   let mut lexer = Lexer::new(
     "@/=!;..>>\n\
         ?. ? // this is line comment \n\
@@ -9,7 +11,7 @@ fn test_peek_operators_and_punctuation_tokens() {
         %=  &=**,)=$:  ;==..<<=",
   );
   let mut got_token_types = Vec::<TokenType>::new();
-  let mut got_lexer_errors = Vec::<&LexerError>::new();
+  let mut got_lexer_errors = Vec::<&CompileError>::new();
   while let Some(token) = lexer.next() {
     // println!("{:?}", token);
     got_token_types.push(token.kind);
@@ -59,7 +61,7 @@ fn test_peek_operators_and_punctuation_tokens() {
     got_lexer_errors.push(e);
   });
   assert_eq!(got_lexer_errors.len(), 1);
-  if let LexerError::ImbalancedPair { pos, kind } = got_lexer_errors[0] {
+  if let CompileError::ImbalancedPair { pos, kind } = got_lexer_errors[0] {
     assert_eq!(*kind, "parenthesis");
     assert_eq!(pos.line, 5);
     assert_eq!(pos.col, 11);

@@ -2,9 +2,8 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::iter::Peekable;
 use std::str::Chars;
-use thiserror::Error;
 
-use crate::core::shared::ast::Position;
+use crate::core::shared::compile_errors::CompileError;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum TokenType {
@@ -146,23 +145,7 @@ pub struct Lexer<'a> {
   pub reserved_words_map: RefCell<HashMap<&'a str, TokenType>>,
 
   // collecting errors, don't interrupt lexing process
-  pub errors: Vec<LexerError<'a>>,
-}
-
-
-#[derive(Debug, Error)]
-pub enum LexerError<'d> {
-  #[error("Punctuation {kind} is mismatched at line {pos}")]
-  ImbalancedPair { kind: &'d str, pos: Position },
-
-  #[error("Invalid{numeric_type}number format at line {pos}")]
-  InvalidFormatNumber { numeric_type: String, pos: Position },
-
-  #[error("Invalid empty char at line {pos}")]
-  InvalidEmptyChar { pos: Position },
-
-  #[error("Unclosed char literal at line {pos}")]
-  UnclosedCharLiteral { pos: Position },
+  pub errors: Vec<CompileError<'a>>,
 }
 
 pub enum NumberRadix {
