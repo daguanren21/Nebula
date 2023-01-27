@@ -68,4 +68,4 @@ const cargo_check_callback = (error) => {
 
 // start cargo check
 print_blue_bold_message('[INFO] start cargo check...');
-exec('cargo check', { shell: true },cargo_check_callback);
+exec('cargo check', { shell: true }, cargo_check_callback);

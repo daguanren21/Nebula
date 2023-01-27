@@ -2,7 +2,7 @@ use thiserror::Error;
 
 use super::ast::Position;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Clone)]
 pub enum CompileError {
   // Lexer Errors:
   #[error("(Syntax) Punctuation \"{punc_str}\" is mismatched at {pos}")]

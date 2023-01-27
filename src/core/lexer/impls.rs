@@ -660,7 +660,7 @@ impl<'a> Lexer<'a> {
     }
   }
 
-  pub fn pick_all_tokens(&mut self) -> Vec<Token> {
+  pub fn peek_all_tokens(&mut self) -> Vec<Token> {
     let mut tokens = Vec::new();
     while let Some(token) = self.next() {
       tokens.push(token);
