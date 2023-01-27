@@ -70,8 +70,28 @@ pub enum NormalExpression {
 }
 
 /// Tips: we will likely use a `Box<Statement>` to represent a block.
+/// 
 /// Because we allow these kinds of with-block-expressions to only contain a single statement.
+/// 
 /// So it maybe one single statement, or a direct block expression.
+/// 
+/// ```txt
+/// - { some_expresion } => Box<Statement> => 
+///   Box<ExpressionStatement(
+///     Expression::Normal(
+///       NormalExpression
+///     )
+///   )>
+/// - { expr1; expr2; some_expr_with_block expr3; } => Box<Statement> => 
+///   Box<ExpressionStatement(
+///     Expression::WithBlock(
+///       ExpressionWithBlock::SingleBlock(
+///         Vec<Statement>
+///       )
+///     )
+///   )>
+/// ```
+/// 
 
 #[derive(Debug, Clone)]
 pub enum ExpressionWithBlock {

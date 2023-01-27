@@ -19,6 +19,7 @@ const antlr4_parse_check = () => {
   let pass_check = true;
   for (const file_name of samples) {
     if (file_name.endsWith('.n')) {
+      print_blue_bold_message(`[INFO] antlr checking ${file_name} ...`);
       const returns = execSync('antlr4-parse ' + [
         'specs/NebulaParser.g4',
         "entry_file",
