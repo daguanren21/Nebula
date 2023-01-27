@@ -70,19 +70,19 @@ pub enum NormalExpression {
 }
 
 /// Tips: we will likely use a `Box<Statement>` to represent a block.
-/// 
+///
 /// Because we allow these kinds of with-block-expressions to only contain a single statement.
-/// 
+///
 /// So it maybe one single statement, or a direct block expression.
-/// 
+///
 /// ```txt
-/// - { some_expresion } => Box<Statement> => 
+/// - { some_expresion } => Box<Statement> =>
 ///   Box<ExpressionStatement(
 ///     Expression::Normal(
 ///       NormalExpression
 ///     )
 ///   )>
-/// - { expr1; expr2; some_expr_with_block expr3; } => Box<Statement> => 
+/// - { expr1; expr2; some_expr_with_block expr3; } => Box<Statement> =>
 ///   Box<ExpressionStatement(
 ///     Expression::WithBlock(
 ///       ExpressionWithBlock::SingleBlock(
@@ -91,7 +91,7 @@ pub enum NormalExpression {
 ///     )
 ///   )>
 /// ```
-/// 
+///
 
 #[derive(Debug, Clone)]
 pub enum ExpressionWithBlock {
@@ -118,17 +118,17 @@ pub enum ExpressionWithBlock {
   },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SimpleLiteral {
-  DecimalLiteral(i32),
-  BinaryLiteral(i32),
-  OctalLiteral(i32),
-  HexLiteral(i32),
+  DecimalLiteral(String),
+  BinaryLiteral(String),
+  OctalLiteral(String),
+  HexLiteral(String),
   StringLiteral(String),
   BooleanLiteral(bool),
-  CharLiteral(char),
-  FloatLiteral(f32),
-  ExponentLiteral(f32),
+  CharLiteral(String),
+  FloatLiteral(String),
+  ExponentLiteral(String),
 }
 
 #[derive(Debug, Clone)]

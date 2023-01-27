@@ -11,7 +11,8 @@ fn test_peek_numeric_tokens() {
      18.652\n\
      73e6\n\
      1.6e5\n\
-     9.88e8.2\n",
+     9.88e8.2\n\
+     43.9e-6",
   );
   let mut got_pairs = Vec::<(TokenType, String)>::new();
   while let Some(token) = lexer.next() {
@@ -31,6 +32,7 @@ fn test_peek_numeric_tokens() {
     (TokenType::Exponent, String::from("9.88e8")),
     (TokenType::Dot, String::from(".")),
     (TokenType::DecimalInteger, String::from("2")),
+    (TokenType::Exponent, String::from("43.9e-6")),
   ];
   assert_eq!(got_pairs.len(), answer_pairs.len());
   for i in 0..got_pairs.len() {

@@ -312,6 +312,9 @@ impl<'a> Lexer<'a> {
         is_exponent = true;
         exponent_collect.push(next_char); // add the 'e' character
         self.consume_char();
+      } else if is_exponent && next_char == '-' {
+        exponent_collect.push('-');
+        self.consume_char();
       } else {
         break;
       }
@@ -436,7 +439,7 @@ impl<'a> Lexer<'a> {
     Some(self.create_token(TokenType::String, String::from_iter(chars_collect)))
   }
 
-  fn peek_next_token(&mut self) -> Option<Token> {
+  pub fn peek_next_token(&mut self) -> Option<Token> {
     self.skip_whitespaces();
     while let Some(c) = self.consume_char() {
       // punctuations are all single-character
@@ -662,7 +665,7 @@ impl<'a> Lexer<'a> {
 
   pub fn peek_all_tokens(&mut self) -> Vec<Token> {
     let mut tokens = Vec::new();
-    while let Some(token) = self.next() {
+    while let Some(token) = self.peek_next_token() {
       tokens.push(token);
     }
 
