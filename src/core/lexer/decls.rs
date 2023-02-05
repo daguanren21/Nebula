@@ -59,62 +59,114 @@ pub enum TokenType {
   String,
 
   // Punctuations:
-  Semi,         // ;
-  Comma,        // ,
-  Colon,        // :
-  LeftParen,    // (
-  RightParen,   // )
-  LeftBrace,    // {
-  RightBrace,   // }
-  LeftBracket,  // [
-  RightBracket, // ]
+  // ;
+  Semi,
+  // ,
+  Comma,
+  // :
+  Colon,
+  // (
+  LeftParen,
+  // )
+  RightParen,
+  // {
+  LeftBrace,
+  // }
+  RightBrace,
+  // [
+  LeftBracket,
+  // ]
+  RightBracket,
 
   // ----- Operators:
-  DoubleColon,           // ::
-  Dot,                   // .
-  Equal,                 // =
-  DoubleEqual,           // ==
-  BangEqual,             // !=
-  Plus,                  // +
-  Minus,                 // -
-  Star,                  // *
-  DoubleStar,            // **
-  Slash,                 // /
-  Percent,               // %
-  Alpha,                 // @
-  Wavy,                  // ~
-  Caret,                 // ^
-  Ampersand,             // &
-  Bang,                  // !
-  Vertical,              // |
-  LeftAngle,             // <
-  RightAngle,            // >
-  DoubleLeftAngle,       // <<
-  DoubleRightAngle,      // >>
-  DoubleAmpersand,       // &&
-  DoubleVertical,        // ||
-  LeftAngleEqual,        // <=
-  RightAngleEqual,       // >=
-  LeftArrow,             // <-
-  RightArrow,            // ->
-  PlusEqual,             // +=
-  MinusEqual,            // -=
-  StarEqual,             // *=
-  SlashEqual,            // /=
-  PercentEqual,          // %=
-  DoubleLeftAngleEqual,  // <<=
-  DoubleRightAngleEqual, // >>=
-  AmpersandEqual,        // &=
-  VerticalEqual,         // |=
-  CaretEqual,            // ^=
-  DoubleDots,            // ..
-  ThreeDots,             // ...
-  DoubleDotsEqual,       // ..=
-  Question,              // ?
-  QuestionDot,           // ?.
+  // ::
+  DoubleColon,
+  // .
+  Dot,
+  // =
+  Equal,
+  // ==
+  DoubleEqual,
+  // !=
+  BangEqual,
+  // +
+  Plus,
+  // -
+  Minus,
+  // *
+  Star,
+  // **
+  DoubleStar,
+  // /
+  Slash,
+  // %
+  Percent,
+  // @
+  Alpha,
+  // ~
+  Wavy,
+  // ^
+  Caret,
+  // &
+  Ampersand,
+  // !
+  Bang,
+  // |
+  Vertical,
+  // <
+  LeftAngle,
+  // >
+  RightAngle,
+  // <<
+  DoubleLeftAngle,
+  // >>
+  DoubleRightAngle,
+  // &&
+  DoubleAmpersand,
+  // ||
+  DoubleVertical,
+  // <=
+  LeftAngleEqual,
+  // >=
+  RightAngleEqual,
+  // <-
+  LeftArrow,
+  // ->
+  RightArrow,
+  // +=
+  PlusEqual,
+  // -=
+  MinusEqual,
+  // *=
+  StarEqual,
+  // /=
+  SlashEqual,
+  // %=
+  PercentEqual,
+  // <<=
+  DoubleLeftAngleEqual,
+  // >>=
+  DoubleRightAngleEqual,
+  // &=
+  AmpersandEqual,
+  // |=
+  VerticalEqual,
+  // ^=
+  CaretEqual,
+  // ..
+  DoubleDots,
+  // ...
+  ThreeDots,
+  // ..=
+  DoubleDotsEqual,
+  // ?
+  Question,
+  // ?.
+  QuestionDot,
 
   // ----- Important symbols:
-  DollarColon, // $:
+  // $:
+  DollarColon,
 
   // ----- Identifier symbol:
   Identifier,
@@ -129,13 +181,13 @@ pub struct Token {
   pub kind: TokenType,
   pub offset: usize,
   pub line: usize,
-  pub col: i64,
+  pub col: usize,
 }
 
 pub struct Lexer<'a> {
   // Human readable position in file
   pub cur_line: usize,
-  pub cur_col: i64,
+  pub cur_col: usize,
 
   // offset cursor of character moving
   pub offset_cursor: usize,

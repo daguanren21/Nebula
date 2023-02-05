@@ -1,5 +1,5 @@
 [hooks]
-pre-commit = "node scripts/antlr_check.js && cargo fmt"
+pre-commit = "node scripts/antlr_check.js && cargo fmt && git add -A"
 
 [logging]
 verbose = true

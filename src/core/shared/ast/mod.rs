@@ -12,10 +12,10 @@ pub struct Identifier {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Position {
   pub line: usize,
-  pub col: i64,
+  pub col: usize,
 }
 impl Position {
-  pub fn new(line: usize, col: i64) -> Position {
+  pub fn new(line: usize, col: usize) -> Position {
     Position { line, col }
   }
 }

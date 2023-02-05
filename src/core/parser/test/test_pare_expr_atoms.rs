@@ -66,3 +66,45 @@ fn test_parse_expression_grouping() {
     panic!("Can not correctly parse to a grouping expression.");
   }
 }
+
+#[test]
+fn test_parse_expression_array_literal() {
+  use crate::core::{
+    parser::impls::Parser,
+    shared::ast::{
+      expressions::{
+        Expression::NormalExpression,
+        NormalExpression::{ArrayLiteral, SimpleLiteral},
+        SimpleLiteral::DecimalLiteral,
+      },
+      Position,
+    },
+  };
+  let mut parser = Parser::new(r#"[1, 2, 3]"#);
+  let expr_test = parser.parse_expression_array_literal();
+
+  assert_eq!(expr_test.is_some(), true);
+  if let Some(NormalExpression(ArrayLiteral(expr_list, left_bracket_pos, right_bracket_pos))) =
+    expr_test
+  {
+    assert_eq!(left_bracket_pos, Position { line: 1, col: 2 });
+    assert_eq!(right_bracket_pos, Position { line: 1, col: 10 });
+    assert_eq!(expr_list.len(), 3);
+    for i in 0..expr_list.len() {
+      if let NormalExpression(SimpleLiteral(DecimalLiteral(lit_raw), lit_pos)) = &expr_list[i] {
+        assert_eq!(*lit_raw, (i + 1).to_string());
+        assert_eq!(
+          *lit_pos,
+          Position {
+            line: 1,
+            col: 3 * (i + 1)
+          }
+        );
+      } else {
+        panic!("Can not correctly parse {} as a decimal literal.", i + 1);
+      }
+    }
+  } else {
+    panic!("Can not correctly parse to an array literal expression.");
+  }
+}

@@ -20,4 +20,13 @@ pub enum CompileError {
   // Parser Errors:
   #[error("(Syntax) Unexpected token {token_name} at {pos}")]
   UnexpectedToken { token_name: String, pos: Position },
+
+  #[error("(Syntax) Expected expression after left parenthesis '(' at {pos}")]
+  ExpectedExpressionAfterLeftParenthesis { pos: Position },
+
+  #[error("(Syntax) Expected right parenthesis ')' after expression at {pos}")]
+  ExpectedRightParenthesisAfterExpression { pos: Position },
+
+  #[error("(Syntax) Expected a comma ',' to seperate or a right parenthesis ']' to terminate in array literal at {pos}")]
+  ExpectedCommaOrRightBracketAfterExpression { pos: Position },
 }
