@@ -3,8 +3,8 @@ use crate::core::shared::ast::{Identifier, Position};
 
 #[derive(Debug, Clone)]
 pub enum Expression {
-  Normal(NormalExpression),
-  WithBlock(ExpressionWithBlock),
+  NormalExpression(NormalExpression),
+  ExpressionWithBlock(ExpressionWithBlock),
 }
 
 #[derive(Debug, Clone)]
@@ -69,7 +69,7 @@ pub enum NormalExpression {
   RangeExpression(Box<NormalExpression>, Box<NormalExpression>, bool),
 }
 
-/// Tips: we will likely use a `Box<Statement>` to represent a block.
+/// Tips: We will likely use a `Box<Statement>` to represent a block.
 ///
 /// Because we allow these kinds of with-block-expressions to only contain a single statement.
 ///
@@ -84,7 +84,7 @@ pub enum NormalExpression {
 ///   )>
 /// - { expr1; expr2; some_expr_with_block expr3; } => Box<Statement> =>
 ///   Box<ExpressionStatement(
-///     Expression::WithBlock(
+///     Expression::ExpressionWithBlock(
 ///       ExpressionWithBlock::SingleBlock(
 ///         Vec<Statement>
 ///       )
@@ -95,7 +95,7 @@ pub enum NormalExpression {
 
 #[derive(Debug, Clone)]
 pub enum ExpressionWithBlock {
-  SingleBlock(Vec<Statement>),
+  BareBlock(Vec<Statement>),
   IfExpression {
     condition: Box<Expression>,
     then_block: Box<Statement>,

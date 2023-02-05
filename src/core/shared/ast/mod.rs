@@ -9,7 +9,7 @@ pub struct Identifier {
   pub location: Position,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Position {
   pub line: usize,
   pub col: i64,
