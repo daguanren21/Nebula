@@ -22,7 +22,7 @@ pub enum NormalExpression {
   /// Usually used to access some fields under a namespace created by `struct` or `enum`. <br>
   /// Examples: `a::b::c`, `HttpStatus::NotFound`, `self::a::b`, `crate::a::b` <br>
   /// Properties: path expression
-  PathExpression(PathExpression),
+  NamePathExpression(NamePathExpression),
   /// A lambda expression. Prefix with `$:` <br>
   /// Examples: `$: a, b -> a + b` <br>
   LambdaExpression(LambdaExpression),
@@ -132,16 +132,17 @@ pub enum SimpleLiteral {
 }
 
 #[derive(Debug, Clone)]
-pub enum PathExpressionHead {
+pub enum NamePathHead {
   Identifier(Identifier),
   SelfSymbol(Position),
+  BigSelfSymbol(Position),
   CrateSymbol(Position),
 }
 
 #[derive(Debug, Clone)]
-pub struct PathExpression {
-  pub head: PathExpressionHead,
-  pub fragments: Vec<Identifier>,
+pub struct NamePathExpression {
+  pub head: NamePathHead,
+  pub suffix: Option<Vec<Identifier>>,
 }
 
 #[derive(Debug, Clone)]
@@ -259,5 +260,5 @@ pub enum MatchArmPattern {
 pub enum MatchSingleArm {
   Literal(SimpleLiteral),
   Identifier(Identifier),
-  Path(PathExpression),
+  Path(NamePathExpression),
 }

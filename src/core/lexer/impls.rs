@@ -657,7 +657,8 @@ impl<'a> Lexer<'a> {
           "false" => TokenType::False,
           "nil" => TokenType::Nil,
           "crate" => TokenType::Crate,
-          "self" => TokenType::_Self_
+          "self" => TokenType::_self_,
+          "Self" => TokenType::_Self_
       }),
       errors: Vec::<CompileError>::new(),
     }

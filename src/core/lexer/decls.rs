@@ -44,6 +44,7 @@ pub enum TokenType {
   True,
   False,
   Crate,
+  _self_,
   _Self_,
 
   // Number literals:

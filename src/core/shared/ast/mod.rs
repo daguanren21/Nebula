@@ -3,10 +3,10 @@ use std::fmt::{Display, Formatter};
 pub mod expressions;
 pub mod statements;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Identifier {
   pub name: String,
-  pub location: Position,
+  pub pos: Position,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

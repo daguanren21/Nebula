@@ -29,4 +29,7 @@ pub enum CompileError {
 
   #[error("(Syntax) Expected a comma ',' to seperate or a right parenthesis ']' to terminate in array literal at {pos}")]
   ExpectedCommaOrRightBracketAfterExpression { pos: Position },
+
+  #[error("(Syntax) Expected an identifier after double colon in name path expression at {pos}")]
+  ExpectedIdentifierAfterDoubleColon { pos: Position },
 }

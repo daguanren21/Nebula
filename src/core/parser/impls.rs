@@ -1,3 +1,5 @@
+use crate::core::shared::ast::expressions::{NamePathExpression, NamePathHead};
+use crate::core::shared::ast::Identifier;
 use crate::core::{
   lexer::decls::{Lexer, Token, TokenType},
   shared::{
@@ -6,9 +8,15 @@ use crate::core::{
       Position,
     },
     compile_errors::CompileError,
-    make_internal_err_str,
+    nebula_interal_err,
   },
 };
+
+struct ParsingTokenMeta {
+  raw: String,
+  kind: TokenType,
+  pos: Position,
+}
 
 pub struct Parser<'a> {
   last_token: Option<Token>,
@@ -42,6 +50,20 @@ impl<'a> Parser<'a> {
     false
   }
 
+  fn match_current_token_types(
+    ref_current_token: &Option<Token>,
+    token_types: Vec<TokenType>,
+  ) -> bool {
+    if let Some(current_token) = ref_current_token {
+      token_types
+        .iter()
+        .find(|&token_type| *token_type == current_token.kind)
+        .is_some()
+    } else {
+      false
+    }
+  }
+
   fn get_token_pos(ref_token: &Option<Token>) -> Option<Position> {
     if let Some(token) = ref_token {
       Some(Position {
@@ -69,6 +91,34 @@ impl<'a> Parser<'a> {
     }
   }
 
+  fn get_current_token_meta_and_move_next(
+    ref_lexer: &mut Lexer,
+    ref_last_token: &mut Option<Token>,
+    ref_current_token: &mut Option<Token>,
+    current_token_desc: &str,
+  ) -> ParsingTokenMeta {
+    let current_pos = Parser::get_token_pos(ref_current_token).expect(
+      nebula_interal_err(format!("expect receiving position of {}!", current_token_desc).as_str())
+        .as_str(),
+    );
+    let current_kind = Parser::get_token_kind(ref_current_token).expect(
+      nebula_interal_err(
+        format!("expect receiving token type of {}!", current_token_desc).as_str(),
+      )
+      .as_str(),
+    );
+    let current_raw = Parser::get_token_raw(ref_current_token).expect(
+      nebula_interal_err(format!("expect receiving token raw of {}!", current_token_desc).as_str())
+        .as_str(),
+    );
+    Parser::move_to_next_token(ref_lexer, ref_last_token, ref_current_token);
+    ParsingTokenMeta {
+      pos: current_pos,
+      kind: current_kind,
+      raw: current_raw,
+    }
+  }
+
   fn collect_err_on_current_token_pos(
     ref_errors: &mut Vec<CompileError>,
     ref_current_token: &Option<Token>,
@@ -79,20 +129,19 @@ impl<'a> Parser<'a> {
     ref_errors.push(create_err_by_pos(current_token_pos));
   }
 
-  fn get_current_pos_and_move_token(
-    ref_lexer: &mut Lexer,
-    ref_last_token: &mut Option<Token>,
-    ref_current_token: &mut Option<Token>,
-    current_token_desc: &str,
-  ) -> Position {
-    let current_pos = Parser::get_token_pos(ref_current_token).expect(
-      make_internal_err_str(
-        format!("expect recieving position of {}!", current_token_desc).as_str(),
-      )
-      .as_str(),
-    );
-    Parser::move_to_next_token(ref_lexer, ref_last_token, ref_current_token);
-    current_pos
+  fn get_single_bare_name_head(
+    path_expr_head_token_meta: &ParsingTokenMeta,
+  ) -> Option<NamePathHead> {
+    match path_expr_head_token_meta.kind {
+      TokenType::Identifier => Some(NamePathHead::Identifier(Identifier {
+        name: path_expr_head_token_meta.raw.clone(),
+        pos: path_expr_head_token_meta.pos,
+      })),
+      TokenType::Crate => Some(NamePathHead::CrateSymbol(path_expr_head_token_meta.pos)),
+      TokenType::_self_ => Some(NamePathHead::SelfSymbol(path_expr_head_token_meta.pos)),
+      TokenType::_Self_ => Some(NamePathHead::BigSelfSymbol(path_expr_head_token_meta.pos)),
+      _ => None,
+    }
   }
 
   pub fn new(contents: &'a str) -> Self {
@@ -114,117 +163,137 @@ impl<'a> Parser<'a> {
     let current_token_kind = Parser::get_token_kind(&self.current_token);
     if let Some(token_kind) = current_token_kind {
       return match token_kind {
-        TokenType::DecimalInteger => {
-          let raw = Parser::get_token_raw(&self.current_token);
-          let pos = Parser::get_token_pos(&self.current_token);
-          Parser::move_to_next_token(
+        TokenType::True => {
+          let lit_token = Parser::get_current_token_meta_and_move_next(
             &mut self.lexer,
             &mut self.last_token,
             &mut self.current_token,
+            "bool literal true",
+          );
+          Some(Expression::NormalExpression(
+            NormalExpression::SimpleLiteral(SimpleLiteral::BooleanLiteral(true), lit_token.pos),
+          ))
+        }
+        TokenType::False => {
+          let lit_token = Parser::get_current_token_meta_and_move_next(
+            &mut self.lexer,
+            &mut self.last_token,
+            &mut self.current_token,
+            "bool literal false",
+          );
+          Some(Expression::NormalExpression(
+            NormalExpression::SimpleLiteral(SimpleLiteral::BooleanLiteral(false), lit_token.pos),
+          ))
+        }
+        TokenType::DecimalInteger => {
+          let lit_token = Parser::get_current_token_meta_and_move_next(
+            &mut self.lexer,
+            &mut self.last_token,
+            &mut self.current_token,
+            "decimal integer literal",
           );
           Some(Expression::NormalExpression(
             NormalExpression::SimpleLiteral(
-              SimpleLiteral::DecimalLiteral(raw.unwrap()),
-              pos.unwrap(),
+              SimpleLiteral::DecimalLiteral(lit_token.raw),
+              lit_token.pos,
             ),
           ))
         }
         TokenType::OctalInteger => {
-          let raw = Parser::get_token_raw(&self.current_token);
-          let pos = Parser::get_token_pos(&self.current_token);
-          Parser::move_to_next_token(
+          let lit_token = Parser::get_current_token_meta_and_move_next(
             &mut self.lexer,
             &mut self.last_token,
             &mut self.current_token,
+            "octal integer literal",
           );
           Some(Expression::NormalExpression(
             NormalExpression::SimpleLiteral(
-              SimpleLiteral::OctalLiteral(raw.unwrap()),
-              pos.unwrap(),
+              SimpleLiteral::OctalLiteral(lit_token.raw),
+              lit_token.pos,
             ),
           ))
         }
         TokenType::HexadecimalInteger => {
-          let raw = Parser::get_token_raw(&self.current_token);
-          let pos = Parser::get_token_pos(&self.current_token);
-          Parser::move_to_next_token(
+          let lit_token = Parser::get_current_token_meta_and_move_next(
             &mut self.lexer,
             &mut self.last_token,
             &mut self.current_token,
-          );
-          Some(Expression::NormalExpression(
-            NormalExpression::SimpleLiteral(SimpleLiteral::HexLiteral(raw.unwrap()), pos.unwrap()),
-          ))
-        }
-        TokenType::BinaryInteger => {
-          let raw = Parser::get_token_raw(&self.current_token);
-          let pos = Parser::get_token_pos(&self.current_token);
-          Parser::move_to_next_token(
-            &mut self.lexer,
-            &mut self.last_token,
-            &mut self.current_token,
+            "hexadecimal integer literal",
           );
           Some(Expression::NormalExpression(
             NormalExpression::SimpleLiteral(
-              SimpleLiteral::BinaryLiteral(raw.unwrap()),
-              pos.unwrap(),
+              SimpleLiteral::HexLiteral(lit_token.raw),
+              lit_token.pos,
+            ),
+          ))
+        }
+        TokenType::BinaryInteger => {
+          let lit_token = Parser::get_current_token_meta_and_move_next(
+            &mut self.lexer,
+            &mut self.last_token,
+            &mut self.current_token,
+            "binary integer literal",
+          );
+          Some(Expression::NormalExpression(
+            NormalExpression::SimpleLiteral(
+              SimpleLiteral::BinaryLiteral(lit_token.raw),
+              lit_token.pos,
             ),
           ))
         }
         TokenType::Exponent => {
-          let raw = Parser::get_token_raw(&self.current_token);
-          let pos = Parser::get_token_pos(&self.current_token);
-          Parser::move_to_next_token(
+          let lit_token = Parser::get_current_token_meta_and_move_next(
             &mut self.lexer,
             &mut self.last_token,
             &mut self.current_token,
+            "float number in exponent format",
           );
           Some(Expression::NormalExpression(
             NormalExpression::SimpleLiteral(
-              SimpleLiteral::ExponentLiteral(raw.unwrap()),
-              pos.unwrap(),
+              SimpleLiteral::ExponentLiteral(lit_token.raw),
+              lit_token.pos,
             ),
           ))
         }
         TokenType::Float => {
-          let raw = Parser::get_token_raw(&self.current_token);
-          let pos = Parser::get_token_pos(&self.current_token);
-          Parser::move_to_next_token(
+          let lit_token = Parser::get_current_token_meta_and_move_next(
             &mut self.lexer,
             &mut self.last_token,
             &mut self.current_token,
+            "float number",
           );
           Some(Expression::NormalExpression(
             NormalExpression::SimpleLiteral(
-              SimpleLiteral::FloatLiteral(raw.unwrap()),
-              pos.unwrap(),
+              SimpleLiteral::FloatLiteral(lit_token.raw),
+              lit_token.pos,
             ),
           ))
         }
         TokenType::Char => {
-          let raw = Parser::get_token_raw(&self.current_token);
-          let pos = Parser::get_token_pos(&self.current_token);
-          Parser::move_to_next_token(
+          let lit_token = Parser::get_current_token_meta_and_move_next(
             &mut self.lexer,
             &mut self.last_token,
             &mut self.current_token,
-          );
-          Some(Expression::NormalExpression(
-            NormalExpression::SimpleLiteral(SimpleLiteral::CharLiteral(raw.unwrap()), pos.unwrap()),
-          ))
-        }
-        TokenType::String => {
-          let raw = Parser::get_token_raw(&self.current_token);
-          let pos = Parser::get_token_pos(&self.current_token);
-          Parser::move_to_next_token(
-            &mut self.lexer,
-            &mut self.last_token,
-            &mut self.current_token,
+            "character",
           );
           Some(Expression::NormalExpression(
             NormalExpression::SimpleLiteral(
-              SimpleLiteral::StringLiteral(raw.unwrap()),
-              pos.unwrap(),
+              SimpleLiteral::CharLiteral(lit_token.raw),
+              lit_token.pos,
+            ),
+          ))
+        }
+        TokenType::String => {
+          let lit_token = Parser::get_current_token_meta_and_move_next(
+            &mut self.lexer,
+            &mut self.last_token,
+            &mut self.current_token,
+            "character",
+          );
+          Some(Expression::NormalExpression(
+            NormalExpression::SimpleLiteral(
+              SimpleLiteral::StringLiteral(lit_token.raw),
+              lit_token.pos,
             ),
           ))
         }
@@ -238,7 +307,7 @@ impl<'a> Parser<'a> {
     if !Parser::match_current_token_type(&mut self.current_token, TokenType::LeftParen) {
       return None;
     }
-    let left_paren_pos = Parser::get_current_pos_and_move_token(
+    let left_paren_token = Parser::get_current_token_meta_and_move_next(
       &mut self.lexer,
       &mut self.last_token,
       &mut self.current_token,
@@ -246,7 +315,7 @@ impl<'a> Parser<'a> {
     ); // moves over this '('
     if let Some(expression) = self.parse_expression() {
       if Parser::match_current_token_type(&mut self.current_token, TokenType::RightParen) {
-        let right_paren_pos = Parser::get_current_pos_and_move_token(
+        let right_paren_token = Parser::get_current_token_meta_and_move_next(
           &mut self.lexer,
           &mut self.last_token,
           &mut self.current_token,
@@ -254,8 +323,8 @@ impl<'a> Parser<'a> {
         ); // moves over this ')'
         return Some(Expression::NormalExpression(NormalExpression::Grouping(
           Box::new(expression),
-          left_paren_pos,
-          right_paren_pos,
+          left_paren_token.pos,
+          right_paren_token.pos,
         )));
       } else {
         // error: expected right parenthesis to close this grouping expression
@@ -268,7 +337,7 @@ impl<'a> Parser<'a> {
       self
         .errors
         .push(CompileError::ExpectedExpressionAfterLeftParenthesis {
-          pos: left_paren_pos,
+          pos: left_paren_token.pos,
         })
     }
     None
@@ -278,7 +347,7 @@ impl<'a> Parser<'a> {
     if !Parser::match_current_token_type(&mut self.current_token, TokenType::LeftBracket) {
       return None;
     }
-    let left_bracket_pos = Parser::get_current_pos_and_move_token(
+    let left_bracket_token = Parser::get_current_token_meta_and_move_next(
       &mut self.lexer,
       &mut self.last_token,
       &mut self.current_token,
@@ -294,17 +363,21 @@ impl<'a> Parser<'a> {
           &mut self.current_token,
         ); // moves over this ','
       } else if Parser::match_current_token_type(&mut self.current_token, TokenType::RightBracket) {
-        let right_bracket_pos = Parser::get_current_pos_and_move_token(
+        let right_bracket_token = Parser::get_current_token_meta_and_move_next(
           &mut self.lexer,
           &mut self.last_token,
           &mut self.current_token,
           "right bracket",
         ); // moves over this ']'
         return Some(Expression::NormalExpression(
-          NormalExpression::ArrayLiteral(expr_list, left_bracket_pos, right_bracket_pos),
+          NormalExpression::ArrayLiteral(
+            expr_list,
+            left_bracket_token.pos,
+            right_bracket_token.pos,
+          ),
         ));
       } else {
-        // error: Expected a comma to seperate or a right parenthesis to terminate in array literal
+        // error: Expected a comma to separate or a right parenthesis to terminate in array literal
         Parser::collect_err_on_current_token_pos(&mut self.errors, &self.current_token, |pos| {
           CompileError::ExpectedCommaOrRightBracketAfterExpression { pos }
         });
@@ -312,6 +385,69 @@ impl<'a> Parser<'a> {
       }
     }
     None
+  }
+
+  pub fn parse_expression_name_path_expression(&mut self) -> Option<Expression> {
+    if !Parser::match_current_token_types(
+      &self.current_token,
+      vec![
+        TokenType::Identifier,
+        TokenType::Crate,
+        TokenType::_self_,
+        TokenType::_Self_,
+      ],
+    ) {
+      return None;
+    }
+    let path_expr_head_token_meta = Parser::get_current_token_meta_and_move_next(
+      &mut self.lexer,
+      &mut self.last_token,
+      &mut self.current_token,
+      "path expression head",
+    ); // moves over this path expression head
+    let name_head = Parser::get_single_bare_name_head(&path_expr_head_token_meta)
+      .expect(nebula_interal_err("expected creating name header struct but failed").as_str());
+    if !Parser::match_current_token_type(&self.current_token, TokenType::DoubleColon) {
+      // Only single bare head here: Identifier, 'crate', 'self' or 'Self'
+      return Some(Expression::NormalExpression(
+        NormalExpression::NamePathExpression(NamePathExpression {
+          head: name_head,
+          suffix: None,
+        }),
+      ));
+    }
+    let mut suffix = Vec::<Identifier>::new();
+    while Parser::match_current_token_type(&self.current_token, TokenType::DoubleColon) {
+      Parser::move_to_next_token(
+        &mut self.lexer,
+        &mut self.last_token,
+        &mut self.current_token,
+      ); // move over this '::'
+      if Parser::match_current_token_type(&self.current_token, TokenType::Identifier) {
+        let identifier_token = Parser::get_current_token_meta_and_move_next(
+          &mut self.lexer,
+          &mut self.last_token,
+          &mut self.current_token,
+          "path expression head",
+        );
+        suffix.push(Identifier {
+          name: identifier_token.raw,
+          pos: identifier_token.pos,
+        });
+      } else {
+        // error: Expected an identifier after double colon in name path expression
+        Parser::collect_err_on_current_token_pos(&mut self.errors, &self.current_token, |pos| {
+          CompileError::ExpectedIdentifierAfterDoubleColon { pos }
+        });
+        return None;
+      }
+    }
+    Some(Expression::NormalExpression(
+      NormalExpression::NamePathExpression(NamePathExpression {
+        head: name_head,
+        suffix: Some(suffix),
+      }),
+    ))
   }
 
   pub fn parse_expression(&mut self) -> Option<Expression> {

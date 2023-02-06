@@ -99,7 +99,7 @@ normal_expression // without struct init expression
   : '(' expression ')'                                          // GroupingExpression
   | simple_literal
   | array_literal
-  | path_expression
+  | name_path_expression
   | lamdba_expression
   | 'await' expression                                          // AwaitExpression
   | normal_expression '?.' IDENTIFIER                           // OptionalChainExpression
@@ -178,13 +178,14 @@ for_loop_alias
   : IDENTIFIER
   | '_'
   ;
-path_expression
-  : path_expression_head ('::' IDENTIFIER)*
+name_path_expression
+  : name_path_head ('::' IDENTIFIER)*
   ;
-path_expression_head
+name_path_head
   : IDENTIFIER
   | 'crate'
   | 'self'
+  | 'Self'
   ;
 match_expression
   : 'match' normal_expression '{'
@@ -201,7 +202,7 @@ match_condition
   | '_'                                       // fallback pattern
   ;
 enum_pattern
-  : path_expression_head '::' IDENTIFIER
+  : name_path_head '::' IDENTIFIER
   ;
 struct_init_expression
   : (IDENTIFIER | 'struct') '{' (struct_init_field ',')+ '}'
@@ -288,6 +289,8 @@ TRUE : 'true';
 FALSE : 'false';
 NIL : 'nil';
 CRATE: 'crate';
+SELF: 'self';
+SELF_BIG: 'Self';
 
 // punctuations
 L_PAREN: '(';

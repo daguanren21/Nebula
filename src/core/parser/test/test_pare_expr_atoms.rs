@@ -108,3 +108,50 @@ fn test_parse_expression_array_literal() {
     panic!("Can not correctly parse to an array literal expression.");
   }
 }
+
+#[test]
+fn test_parse_expression_name_path_expression() {
+  use crate::core::{
+    parser::impls::Parser,
+    shared::ast::{
+      expressions::{
+        Expression::NormalExpression,
+        NormalExpression::NamePathExpression,
+        NamePathHead,
+      },
+      Identifier as IdentifierStruct, Position,
+    },
+  };
+  let mut parser = Parser::new(r#"self::foo::bar"#);
+  let expr_test = parser.parse_expression_name_path_expression();
+  let suffix_answer = vec![
+    IdentifierStruct {
+      name: String::from("foo"),
+      pos: Position { line: 1, col: 10 },
+    },
+    IdentifierStruct {
+      name: String::from("bar"),
+      pos: Position { line: 1, col: 15 },
+    },
+  ];
+
+  assert_eq!(expr_test.is_some(), true);
+  if let Some(NormalExpression(NamePathExpression(name_path_expr))) = expr_test {
+    if let NamePathHead::SelfSymbol(head_pos) = name_path_expr.head {
+      assert_eq!(head_pos, Position { line: 1, col: 5 });
+
+      if let Some(suffix_fragments) = name_path_expr.suffix {
+        suffix_fragments
+          .iter()
+          .enumerate()
+          .for_each(|(i, identifier)| {
+            assert_eq!(identifier, &suffix_answer[i]);
+          });
+      }
+    } else {
+      panic!("Can not correctly parse 'self' to a name path head.");
+    }
+  } else {
+    panic!("Can not correctly parse to a name path expression.");
+  }
+}
